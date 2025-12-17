@@ -1,20 +1,44 @@
-# Copy to `.env` and adjust values.
+# 이 파일을 `.env`로 복사한 뒤 값만 수정해서 사용하세요.
+# Docker Compose는 기본적으로 같은 디렉터리의 `.env`를 자동 로드합니다.
 
-# App / runtime
+# -----------------------------
+# App / 런타임
+# -----------------------------
 APP_TIMEZONE=Asia/Seoul
 
-# Elasticsearch (inside docker-compose, the app uses ELASTICSEARCH_URL=http://elasticsearch:9200)
-# If you run the app outside of Compose, you can set:
-# ELASTICSEARCH_URL=http://localhost:9200
+# -----------------------------
+# Elasticsearch
+# -----------------------------
+# docker-compose 환경에서는 앱 컨테이너가 아래 값을 기본으로 사용합니다:
+#   ELASTICSEARCH_URL=http://elasticsearch:9200
+#
+# 앱을 Docker 밖(로컬/IDE)에서 실행할 경우에는 아래처럼 로컬 ES를 지정할 수 있습니다:
+#   ELASTICSEARCH_URL=http://localhost:9200
+# (참고) 현재 compose 설정은 app 서비스에서 ELASTICSEARCH_URL을 강제로 주입합니다.
+#        따라서 compose 실행 중에는 여기서 ELASTICSEARCH_URL을 바꿔도 영향이 없습니다.
 
-# Ingest scheduling (Spring cron)
+# -----------------------------
+# 수집(ingest) 스케줄 / 범위
+# -----------------------------
+# INGEST_SCHEDULE_CRON: Spring @Scheduled에서 사용하는 cron 표현식
+# 예시) 매일 03:00 실행
 INGEST_SCHEDULE_CRON=0 0 3 * * *
+
+# INGEST_LOOKBACK_YEARS: full 수집 모드에서 "최근 N년"을 기준으로 수집 범위를 제한
+# Plan 기준 기본값은 5년입니다.
 INGEST_LOOKBACK_YEARS=5
 
-# OpenAlex polite pool / contact email (recommended)
+# -----------------------------
+# OpenAlex
+# -----------------------------
+# OpenAlex API 호출 시 Polite Pool(연락 가능한 이메일)로 사용됩니다. (권장)
+# 예: you@example.com
 OPENALEX_EMAIL=you@example.com
 
-# Optional enrichment (Crossref)
-# - false by default; when true, Crossref is called for works that have DOI but missing PDF/Landing.
+# -----------------------------
+# (선택) 링크 보강 - Crossref
+# -----------------------------
+# PAPERRADAR_ENRICH_CROSSREF_ENABLED=true 로 설정하면,
+# DOI는 있지만 OpenAlex에서 landing/pdf 링크가 비어있는 논문에 대해 Crossref를 조회하여 보강합니다.
+# 기본값은 false(비활성)이며, 네트워크 정책/호출량을 고려해 운영에서 결정하세요.
 PAPERRADAR_ENRICH_CROSSREF_ENABLED=false
-
