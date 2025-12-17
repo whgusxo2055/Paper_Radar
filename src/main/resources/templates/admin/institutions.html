@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+  <head th:replace="~{layout :: head('Admin - Institutions - PAPER_RADAR')}"></head>
+  <body>
+    <header th:replace="~{layout :: header}"></header>
+    <main class="container">
+      <h1>Admin / Institutions</h1>
+      <p class="muted">기관 추가 및 활성/비활성 토글 (OpenAlex ID 기준)</p>
+
+      <section class="section">
+        <h2>Add</h2>
+        <div class="card">
+          <div class="grid">
+            <div>
+              <label for="instSearch">Institution search</label>
+              <input id="instSearch" type="text" placeholder="기관명을 입력 (자동완성)" />
+              <div class="muted">선택하면 ID/이름이 아래에 채워집니다.</div>
+            </div>
+            <div>
+              <label for="instIdAdmin">Institution ID</label>
+              <input id="instIdAdmin" type="text" placeholder="https://openalex.org/I..." />
+            </div>
+            <div>
+              <label for="displayNameAdmin">Display name</label>
+              <input id="displayNameAdmin" type="text" placeholder="예: Stanford University" />
+            </div>
+            <div>
+              <label for="aliasAdmin">Alias (optional)</label>
+              <input id="aliasAdmin" type="text" placeholder="예: 스탠퍼드" />
+            </div>
+          </div>
+          <div class="actions">
+            <button id="addInstitutionBtn" class="button" type="button">추가/업데이트</button>
+          </div>
+          <div id="adminInstMsg" class="alert hidden"></div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="row">
+          <h2>Enabled</h2>
+          <div class="muted" th:text="${#lists.size(enabledInstitutions)} + ' items'"></div>
+        </div>
+        <div class="card" th:if="${#lists.isEmpty(enabledInstitutions)}">
+          <p class="muted">활성 기관이 없습니다.</p>
+        </div>
+        <div class="list" th:if="${!#lists.isEmpty(enabledInstitutions)}">
+          <div class="card row tight" th:each="it : ${enabledInstitutions}">
+            <div>
+              <div>
+                <a th:href="@{/institution/{eid}(eid=${T(com.paperradar.institution.util.InstitutionIdCodec).encode(it.id)})}"
+                   th:text="${it.displayName}">name</a>
+              </div>
+              <div class="muted" th:text="${it.id}">id</div>
+            </div>
+            <button class="button secondary" type="button" data-action="disable-institution" th:attr="data-inst-id=${it.id}">Disable</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="row">
+          <h2>Disabled</h2>
+          <div class="muted" th:text="${#lists.size(disabledInstitutions)} + ' items'"></div>
+        </div>
+        <div class="card" th:if="${#lists.isEmpty(disabledInstitutions)}">
+          <p class="muted">비활성 기관이 없습니다.</p>
+        </div>
+        <div class="list" th:if="${!#lists.isEmpty(disabledInstitutions)}">
+          <div class="card row tight" th:each="it : ${disabledInstitutions}">
+            <div>
+              <div>
+                <a th:href="@{/institution/{eid}(eid=${T(com.paperradar.institution.util.InstitutionIdCodec).encode(it.id)})}"
+                   th:text="${it.displayName}">name</a>
+              </div>
+              <div class="muted" th:text="${it.id}">id</div>
+            </div>
+            <button class="button secondary" type="button" data-action="enable-institution" th:attr="data-inst-id=${it.id}">Enable</button>
+          </div>
+        </div>
+      </section>
+    </main>
+    <footer th:replace="~{layout :: footer}"></footer>
+  </body>
+</html>

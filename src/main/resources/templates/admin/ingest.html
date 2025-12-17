@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+  <head th:replace="~{layout :: head('Admin - Ingest - PAPER_RADAR')}"></head>
+  <body>
+    <header th:replace="~{layout :: header}"></header>
+    <main class="container">
+      <h1>Admin / Ingest</h1>
+      <p class="muted">수집 수동 실행 및 최근 job 로그</p>
+
+      <section class="section">
+        <div class="actions">
+          <button class="button" type="button" data-action="ingest-run" data-mode="incremental">Incremental 실행</button>
+          <button class="button secondary" type="button" data-action="ingest-run" data-mode="full">Full 실행(최근 5년)</button>
+        </div>
+        <div id="ingestMsg" class="alert hidden"></div>
+      </section>
+
+      <section class="section">
+        <div class="row">
+          <h2>Recent Jobs</h2>
+          <div class="muted" th:text="${#lists.size(jobs)} + ' items'"></div>
+        </div>
+
+        <div class="card" th:if="${jobs == null or #lists.isEmpty(jobs)}">
+          <p class="muted">최근 job이 없습니다.</p>
+        </div>
+
+        <div class="card" th:if="${jobs != null and !#lists.isEmpty(jobs)}">
+          <div class="trend-head">
+            <div>mode</div>
+            <div>status</div>
+            <div>started</div>
+            <div>ended</div>
+            <div class="right">processed</div>
+            <div class="right">created</div>
+            <div class="right">updated</div>
+          </div>
+          <div class="trend-row" th:each="j : ${jobs}">
+            <div th:text="${j.mode}">incremental</div>
+            <div th:text="${j.status}">success</div>
+            <div th:text="${j.startedAt}">started</div>
+            <div th:text="${j.endedAt}">ended</div>
+            <div class="right" th:text="${j.processedCount}">0</div>
+            <div class="right" th:text="${j.createdCount}">0</div>
+            <div class="right" th:text="${j.updatedCount}">0</div>
+          </div>
+          <div class="muted small" th:each="j : ${jobs}" th:if="${j.errorSummary != null and !j.errorSummary.isBlank()}">
+            <div th:text="'error: ' + ${j.errorSummary}"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+    <footer th:replace="~{layout :: footer}"></footer>
+  </body>
+</html>
+

@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+  <head th:replace="~{layout :: head('Work - PAPER_RADAR')}"></head>
+  <body>
+    <header th:replace="~{layout :: header}"></header>
+    <main class="container">
+      <h1>Work</h1>
+
+      <div class="alert" th:if="${error != null}">
+        <strong th:text="${error}">error</strong>
+      </div>
+
+      <section class="section" th:if="${work != null}">
+        <div class="card">
+          <h2 class="title" th:text="${work.title}">title</h2>
+          <div class="meta">
+            <span th:text="${work.publicationDate}">date</span>
+            <span th:text="${work.institutionsText}">institutions</span>
+          </div>
+        </div>
+
+        <section class="section">
+          <div class="row">
+            <h2>External Links</h2>
+            <div class="muted">가능한 링크만 표시</div>
+          </div>
+          <div class="card" th:if="${#lists.isEmpty(work.links)}">
+            <p class="muted">제공 가능한 링크가 없습니다.</p>
+          </div>
+          <div class="card" th:if="${!#lists.isEmpty(work.links)}">
+            <div class="actions">
+              <a class="button secondary"
+                 th:each="l : ${work.links}"
+                 th:href="${l.url}"
+                 target="_blank"
+                 rel="noopener noreferrer"
+                 th:text="${'원문(' + l.type + ')'}">
+                LINK
+              </a>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" th:if="${work.abstractText != null and !work.abstractText.isBlank()}">
+          <div class="row">
+            <h2>Abstract</h2>
+          </div>
+          <div class="card">
+            <p th:text="${work.abstractText}">abstract</p>
+          </div>
+        </section>
+
+        <section class="section" th:if="${work.authors != null and !#lists.isEmpty(work.authors)}">
+          <div class="row">
+            <h2>Authors</h2>
+          </div>
+          <div class="card">
+            <div class="chips">
+              <a class="chip"
+                 th:each="a : ${work.authors}"
+                 th:href="@{/search(author=${a})}"
+                 th:text="${a}">
+                author
+              </a>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" th:if="${work.institutions != null and !#lists.isEmpty(work.institutions)}">
+          <div class="row">
+            <h2>Institutions</h2>
+          </div>
+          <div class="card">
+            <div class="chips">
+              <span th:each="i : ${work.institutions}">
+                <a class="chip"
+                   th:href="@{/search(instId=${i.id})}"
+                   th:text="${i.name != null and !i.name.isBlank()} ? ${i.name} : ${i.id}">
+                  inst
+                </a>
+                <a class="chip"
+                   th:if="${i.id != null and !i.id.isBlank()}"
+                   th:href="@{/institution/{eid}(eid=${T(com.paperradar.institution.util.InstitutionIdCodec).encode(i.id)})}">
+                  분석
+                </a>
+                <span th:if="${i.id != null and !i.id.isBlank() and work.keywords != null and !#lists.isEmpty(work.keywords)}">
+                  <a class="chip"
+                     th:each="k,stat : ${work.keywords}"
+                     th:if="${stat.index < 5}"
+                     th:href="@{/search(instId=${i.id},keyword=${k})}"
+                     th:text="${'+' + k}">
+                    +kw
+                  </a>
+                </span>
+              </span>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" th:if="${work.keywords != null and !#lists.isEmpty(work.keywords)}">
+          <div class="row">
+            <h2>Keywords</h2>
+          </div>
+          <div class="card">
+            <div class="chips">
+              <a class="chip" th:each="k : ${work.keywords}" th:href="@{/search(keyword=${k})}" th:text="${k}">kw</a>
+            </div>
+          </div>
+        </section>
+      </section>
+    </main>
+    <footer th:replace="~{layout :: footer}"></footer>
+  </body>
+</html>

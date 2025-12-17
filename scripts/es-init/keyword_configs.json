@@ -1,0 +1,18 @@
+{
+  "settings": {
+    "number_of_shards": 1,
+    "number_of_replicas": 0,
+    "refresh_interval": "1s"
+  },
+  "mappings": {
+    "dynamic": true,
+    "properties": {
+      "enabled_keywords": { "type": "keyword" },
+      "disabled_keywords": { "type": "keyword" },
+      "enabled_institutions": { "type": "keyword" },
+      "disabled_institutions": { "type": "keyword" },
+      "updated_at": { "type": "date" }
+    }
+  }
+}
+

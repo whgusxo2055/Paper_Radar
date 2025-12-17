@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+  <head th:replace="~{layout :: head('Search - PAPER_RADAR')}"></head>
+  <body>
+    <header th:replace="~{layout :: header}"></header>
+    <main class="container">
+      <h1>Search</h1>
+      <form class="card" method="get" th:action="@{/search}" th:object="${req}">
+        <div class="grid">
+          <div>
+            <label for="q">Query</label>
+            <input id="q" th:field="*{q}" type="search" placeholder="예: graph neural network" />
+          </div>
+          <div>
+            <label for="keyword">Keyword</label>
+            <input id="keyword" th:field="*{keyword}" type="text" placeholder="예: llm" />
+          </div>
+          <div>
+            <label for="instId">Institution ID</label>
+            <input id="instId" th:field="*{instId}" type="text" placeholder="예: https://openalex.org/I123..." />
+          </div>
+          <div>
+            <label for="author">Author</label>
+            <input id="author" th:field="*{author}" type="text" placeholder="예: Andrew Ng" />
+          </div>
+          <div>
+            <label for="from">From</label>
+            <input id="from" th:field="*{from}" type="date" />
+          </div>
+          <div>
+            <label for="to">To</label>
+            <input id="to" th:field="*{to}" type="date" />
+          </div>
+          <div>
+            <label for="sort">Sort</label>
+            <select id="sort" th:field="*{sort}">
+              <option value="relevance">relevance</option>
+              <option value="newest">newest</option>
+              <option value="cited">cited</option>
+            </select>
+          </div>
+          <div>
+            <label for="size">Size</label>
+            <input id="size" th:field="*{size}" type="number" min="1" max="50" />
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="button" type="submit">검색</button>
+        </div>
+
+        <div class="alert" th:if="${errors != null and !errors.isEmpty()}">
+          <strong>입력 오류</strong>
+          <ul>
+            <li th:each="e : ${errors}" th:text="${e}"></li>
+          </ul>
+        </div>
+      </form>
+
+      <section class="section" th:if="${result != null}">
+        <div class="row">
+          <h2>Results</h2>
+          <div class="muted" th:text="'total: ' + ${result.total}"></div>
+        </div>
+
+        <div class="card" th:if="${result.items.isEmpty()}">
+          <p class="muted">검색 결과가 없습니다.</p>
+        </div>
+
+        <div class="list" th:if="${!result.items.isEmpty()}">
+          <article class="card" th:each="it : ${result.items}">
+            <h3 class="title">
+              <a th:href="@{/work/{eid}(eid=${T(com.paperradar.work.util.WorkIdCodec).encode(it.id)})}"
+                 th:text="${it.title}">
+                title
+              </a>
+            </h3>
+            <div class="meta">
+              <span th:text="${it.institutions}">institutions</span>
+              <span th:text="${it.publicationDate}">date</span>
+            </div>
+            <div class="actions">
+              <a class="button secondary"
+                 th:href="@{/work/{eid}(eid=${T(com.paperradar.work.util.WorkIdCodec).encode(it.id)})}">
+                상세
+              </a>
+              <a class="button secondary"
+                 th:if="${it.bestLinkUrl != null and !it.bestLinkUrl.isBlank()}"
+                 th:href="${it.bestLinkUrl}"
+                 target="_blank"
+                 rel="noopener noreferrer"
+                 th:text="${it.bestLinkType != null and !it.bestLinkType.isBlank()} ? ('원문(' + ${it.bestLinkType} + ')') : '원문'">
+                원문
+              </a>
+            </div>
+          </article>
+        </div>
+
+        <div class="pager" th:if="${result.total > 0}">
+          <a class="button secondary"
+             th:if="${result.page > 1}"
+             th:href="@{/search(q=${req.q},keyword=${req.keyword},instId=${req.instId},author=${req.author},from=${req.from},to=${req.to},sort=${req.sort},size=${req.size},page=${req.page - 1})}">
+            이전
+          </a>
+          <span class="muted" th:text="${result.page} + ' / ' + ${result.totalPages()}"></span>
+          <a class="button secondary"
+             th:if="${result.page < result.totalPages()}"
+             th:href="@{/search(q=${req.q},keyword=${req.keyword},instId=${req.instId},author=${req.author},from=${req.from},to=${req.to},sort=${req.sort},size=${req.size},page=${req.page + 1})}">
+            다음
+          </a>
+        </div>
+      </section>
+    </main>
+    <footer th:replace="~{layout :: footer}"></footer>
+  </body>
+</html>

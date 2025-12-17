@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+  <head th:fragment="head(title)">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title th:text="${title}">PAPER_RADAR</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}" />
+    <script th:src="@{/js/suggest.js}" defer></script>
+    <script th:src="@{/js/admin.js}" defer></script>
+  </head>
+  <body>
+    <header th:fragment="header">
+      <div class="container">
+        <a class="brand" th:href="@{/}">PAPER_RADAR</a>
+        <nav class="nav">
+          <a th:href="@{/search}">Search</a>
+          <a th:href="@{/admin/keywords}">Admin</a>
+          <a th:href="@{/admin/institutions}">Institutions</a>
+          <a th:href="@{/admin/ingest}">Ingest</a>
+          <a th:href="@{/admin/maintenance}">Maintenance</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="container" th:fragment="content">
+      <p>content</p>
+    </main>
+
+    <footer th:fragment="footer">
+      <div class="container muted">Internal service</div>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+  <head th:replace="~{layout :: head('Admin - Keywords - PAPER_RADAR')}"></head>
+  <body>
+    <header th:replace="~{layout :: header}"></header>
+    <main class="container">
+      <h1>Admin / Keywords</h1>
+      <p class="muted">키워드 후보 승인 및 활성/비활성 토글</p>
+
+      <section class="section">
+        <div class="row">
+          <h2>Suggested</h2>
+          <div class="muted" th:text="${#lists.size(suggestedKeywords)} + ' items'"></div>
+        </div>
+        <div class="card" th:if="${#lists.isEmpty(suggestedKeywords)}">
+          <p class="muted">후보 키워드가 없습니다. (최근 30일 기준)</p>
+        </div>
+        <div class="list" th:if="${!#lists.isEmpty(suggestedKeywords)}">
+          <div class="card row tight" th:each="k : ${suggestedKeywords}">
+            <div th:text="${k}">keyword</div>
+            <button class="button secondary" type="button" data-action="enable-keyword" th:attr="data-keyword=${k}">Enable</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="row">
+          <h2>Enabled</h2>
+          <div class="muted" th:text="${#lists.size(enabledKeywords)} + ' items'"></div>
+        </div>
+        <div class="card" th:if="${#lists.isEmpty(enabledKeywords)}">
+          <p class="muted">활성 키워드가 없습니다.</p>
+        </div>
+        <div class="list" th:if="${!#lists.isEmpty(enabledKeywords)}">
+          <div class="card row tight" th:each="k : ${enabledKeywords}">
+            <div th:text="${k}">keyword</div>
+            <button class="button secondary" type="button" data-action="disable-keyword" th:attr="data-keyword=${k}">Disable</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="row">
+          <h2>Disabled</h2>
+          <div class="muted" th:text="${#lists.size(disabledKeywords)} + ' items'"></div>
+        </div>
+        <div class="card" th:if="${#lists.isEmpty(disabledKeywords)}">
+          <p class="muted">비활성 키워드가 없습니다.</p>
+        </div>
+        <div class="list" th:if="${!#lists.isEmpty(disabledKeywords)}">
+          <div class="card row tight" th:each="k : ${disabledKeywords}">
+            <div th:text="${k}">keyword</div>
+            <button class="button secondary" type="button" data-action="enable-keyword" th:attr="data-keyword=${k}">Enable</button>
+          </div>
+        </div>
+      </section>
+    </main>
+    <footer th:replace="~{layout :: footer}"></footer>
+  </body>
+</html>

@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+  <head th:replace="~{layout :: head('Admin - Maintenance - PAPER_RADAR')}"></head>
+  <body>
+    <header th:replace="~{layout :: header}"></header>
+    <main class="container">
+      <h1>Admin / Maintenance</h1>
+      <p class="muted">운영 보조 작업(백필/마이그레이션)</p>
+
+      <section class="section">
+        <div class="card">
+          <h2 class="title">Recompute best_link for works</h2>
+          <p class="muted">기존 works 문서의 `best_link_url/type`를 (DOI → Landing → PDF) 정책으로 재계산합니다.</p>
+
+          <div class="grid">
+            <div>
+              <label for="backfillBatch">Batch size (1~200)</label>
+              <input id="backfillBatch" type="number" min="1" max="200" value="200" />
+            </div>
+            <div>
+              <label for="backfillMax">Max docs (1~20000)</label>
+              <input id="backfillMax" type="number" min="1" max="20000" value="2000" />
+            </div>
+          </div>
+
+          <div class="actions">
+            <button class="button"
+                    type="button"
+                    data-action="maintenance-backfill"
+                    th:disabled="${running}">
+              실행
+            </button>
+          </div>
+
+          <div class="alert" th:if="${running}">
+            <strong>실행 중</strong>
+            <div class="muted">완료 후 새로고침하면 결과가 표시됩니다.</div>
+          </div>
+
+          <div class="card" th:if="${lastResult != null}">
+            <div class="row">
+              <div>lastRunAt</div>
+              <div class="muted" th:text="${lastRunAt}">time</div>
+            </div>
+            <div class="row">
+              <div>scanned</div>
+              <div class="muted" th:text="${lastResult.scanned}">0</div>
+            </div>
+            <div class="row">
+              <div>updated</div>
+              <div class="muted" th:text="${lastResult.updated}">0</div>
+            </div>
+          </div>
+
+          <div id="maintenanceMsg" class="alert hidden"></div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="row">
+          <h2>Recent Maintenance Jobs</h2>
+          <div class="muted" th:text="${jobs != null ? #lists.size(jobs) + ' items' : '0 items'}">0</div>
+        </div>
+        <div class="card" th:if="${jobs == null or #lists.isEmpty(jobs)}">
+          <p class="muted">최근 실행 내역이 없습니다.</p>
+        </div>
+        <div class="card" th:if="${jobs != null and !#lists.isEmpty(jobs)}">
+          <div class="trend-head">
+            <div>type</div>
+            <div>status</div>
+            <div>started</div>
+            <div>ended</div>
+            <div class="right">scanned</div>
+            <div class="right">updated</div>
+          </div>
+          <div class="trend-row" th:each="j : ${jobs}">
+            <div th:text="${j.type}">type</div>
+            <div th:text="${j.status}">status</div>
+            <div th:text="${j.startedAt}">started</div>
+            <div th:text="${j.endedAt}">ended</div>
+            <div class="right" th:text="${j.scannedCount}">0</div>
+            <div class="right" th:text="${j.updatedCount}">0</div>
+          </div>
+          <div class="muted small" th:each="j : ${jobs}" th:if="${j.failedCount > 0}">
+            <div th:text="'failed: ' + ${j.failedCount} + ' (표시: ' + ${#lists.size(j.failedDocIds)} + ')'"></div>
+            <div th:if="${j.failedDocIds != null and !#lists.isEmpty(j.failedDocIds)}">
+              <div th:each="id : ${j.failedDocIds}" th:text="${id}"></div>
+            </div>
+          </div>
+          <div class="muted small" th:each="j : ${jobs}" th:if="${j.errorSummary != null and !j.errorSummary.isBlank()}">
+            <div th:text="'error: ' + ${j.errorSummary}"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+    <footer th:replace="~{layout :: footer}"></footer>
+  </body>
+</html>

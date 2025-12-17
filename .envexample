@@ -1,0 +1,20 @@
+# Copy to `.env` and adjust values.
+
+# App / runtime
+APP_TIMEZONE=Asia/Seoul
+
+# Elasticsearch (inside docker-compose, the app uses ELASTICSEARCH_URL=http://elasticsearch:9200)
+# If you run the app outside of Compose, you can set:
+# ELASTICSEARCH_URL=http://localhost:9200
+
+# Ingest scheduling (Spring cron)
+INGEST_SCHEDULE_CRON=0 0 3 * * *
+INGEST_LOOKBACK_YEARS=5
+
+# OpenAlex polite pool / contact email (recommended)
+OPENALEX_EMAIL=you@example.com
+
+# Optional enrichment (Crossref)
+# - false by default; when true, Crossref is called for works that have DOI but missing PDF/Landing.
+PAPERRADAR_ENRICH_CROSSREF_ENABLED=false
+

@@ -1,0 +1,40 @@
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.20
+    container_name: paperradar-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - xpack.security.http.ssl.enabled=false
+      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+      - cluster.name=paperradar
+      - node.name=paperradar-es-1
+      - http.port=9200
+    ports:
+      - "9200:9200"
+    volumes:
+      - paperradar-esdata:/usr/share/elasticsearch/data
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: paperradar-app
+    environment:
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - APP_TIMEZONE=${APP_TIMEZONE:-Asia/Seoul}
+      - INGEST_SCHEDULE_CRON=${INGEST_SCHEDULE_CRON:-0 0 3 * * *}
+      - INGEST_LOOKBACK_YEARS=${INGEST_LOOKBACK_YEARS:-5}
+      - OPENALEX_EMAIL=${OPENALEX_EMAIL:-}
+      - paperradar.enrich.crossref.enabled=${PAPERRADAR_ENRICH_CROSSREF_ENABLED:-false}
+    ports:
+      - "8080:8080"
+    depends_on:
+      - elasticsearch
+
+volumes:
+  paperradar-esdata:

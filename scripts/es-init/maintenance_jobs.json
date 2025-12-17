@@ -1,0 +1,22 @@
+{
+  "settings": {
+    "number_of_shards": 1,
+    "number_of_replicas": 0,
+    "refresh_interval": "1s"
+  },
+  "mappings": {
+    "dynamic": true,
+    "properties": {
+      "job_id": { "type": "keyword" },
+      "type": { "type": "keyword" },
+      "status": { "type": "keyword" },
+      "started_at": { "type": "date" },
+      "ended_at": { "type": "date" },
+      "scanned_count": { "type": "integer" },
+      "updated_count": { "type": "integer" },
+      "failed_count": { "type": "integer" },
+      "failed_doc_ids": { "type": "keyword" },
+      "error_summary": { "type": "text" }
+    }
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "settings": {
+    "number_of_shards": 1,
+    "number_of_replicas": 0,
+    "refresh_interval": "1s"
+  },
+  "mappings": {
+    "dynamic": true,
+    "properties": {
+      "source": { "type": "keyword" },
+      "source_work_id": { "type": "keyword" },
+      "doi": { "type": "keyword" },
+      "landing_page_url": { "type": "keyword" },
+      "pdf_url": { "type": "keyword" },
+      "open_access_oa_url": { "type": "keyword" },
+      "best_link_url": { "type": "keyword" },
+      "best_link_type": { "type": "keyword" },
+      "title": { "type": "text", "fields": { "keyword": { "type": "keyword", "ignore_above": 256 } } },
+      "abstract": { "type": "text" },
+      "keywords": { "type": "keyword" },
+      "keyword_candidates": { "type": "keyword" },
+      "publication_date": { "type": "date" },
+      "cited_by_count": { "type": "integer" },
+      "authors": {
+        "type": "nested",
+        "properties": {
+          "id": { "type": "keyword" },
+          "name": { "type": "keyword" }
+        }
+      },
+      "institutions": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "keyword" },
+          "name": { "type": "text", "fields": { "keyword": { "type": "keyword", "ignore_above": 256 } } }
+        }
+      },
+      "created_at": { "type": "date" },
+      "updated_at": { "type": "date" }
+    }
+  }
+}
