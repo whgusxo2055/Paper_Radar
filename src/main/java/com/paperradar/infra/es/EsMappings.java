@@ -71,9 +71,15 @@ final class EsMappings {
         properties.put("status", Map.of("type", "keyword"));
         properties.put("started_at", Map.of("type", "date"));
         properties.put("ended_at", Map.of("type", "date"));
+        properties.put("last_heartbeat_at", Map.of("type", "date"));
+        properties.put("last_progress_at", Map.of("type", "date"));
         properties.put("processed_count", Map.of("type", "integer"));
         properties.put("created_count", Map.of("type", "integer"));
         properties.put("updated_count", Map.of("type", "integer"));
+        properties.put("current_source", Map.of("type", "keyword"));
+        properties.put("current_key", Map.of("type", "keyword"));
+        properties.put("from_publication_date", Map.of("type", "date"));
+        properties.put("to_publication_date", Map.of("type", "date"));
         properties.put("error_summary", Map.of("type", "text"));
         return indexBody(properties);
     }

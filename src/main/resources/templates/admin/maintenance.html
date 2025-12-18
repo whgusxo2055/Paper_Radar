@@ -4,80 +4,142 @@
   <body>
     <header th:replace="~{layout :: header}"></header>
     <main class="container">
-      <h1>Admin / Maintenance</h1>
-      <p class="muted">운영 보조 작업(백필/마이그레이션)</p>
+      <div class="row">
+        <h1>관리 / 유지보수</h1>
+      </div>
+      <p class="muted">운영 보조 작업(백필/정리/재계산)</p>
 
-      <section class="section">
-        <div class="card">
-          <h2 class="title">Recompute best_link for works</h2>
-          <p class="muted">기존 works 문서의 `best_link_url/type`를 (DOI → Landing → PDF) 정책으로 재계산합니다.</p>
+      <div class="grid grid-2 section">
+        <section>
+          <div class="card" style="height: 100%;">
+            <h2 class="title">works의 원문 링크(best_link) 재계산</h2>
+            <p class="muted" style="min-height: 3rem;">기존 works 문서의 `best_link_url/type`를 (DOI → Landing → PDF) 정책으로 재계산합니다.</p>
 
-          <div class="grid">
-            <div>
-              <label for="backfillBatch">Batch size (1~200)</label>
-              <input id="backfillBatch" type="number" min="1" max="200" value="200" />
+            <div class="grid grid-2" style="margin-top: 1rem;">
+              <div>
+                <label for="backfillBatch">배치 크기 (1~200)</label>
+                <input id="backfillBatch" type="number" min="1" max="200" value="200" />
+              </div>
+              <div>
+                <label for="backfillMax">최대 문서 수 (1~20000)</label>
+                <input id="backfillMax" type="number" min="1" max="20000" value="2000" />
+              </div>
             </div>
-            <div>
-              <label for="backfillMax">Max docs (1~20000)</label>
-              <input id="backfillMax" type="number" min="1" max="20000" value="2000" />
+
+            <div class="actions" style="margin-top: 1.5rem;">
+              <button class="button"
+                      type="button"
+                      data-action="maintenance-backfill"
+                      th:disabled="${running}"
+                      style="width: 100%;">
+                실행
+              </button>
             </div>
+
+            <div class="alert" th:if="${running}" style="margin-top: 1rem;">
+              <strong>실행 중</strong>
+              <div class="muted">완료 후 새로고침하면 결과가 표시됩니다.</div>
+            </div>
+
+            <div class="card" th:if="${lastResult != null}" style="margin-top: 1rem; background-color: rgba(255,255,255,0.02);">
+              <div class="row">
+                <div>lastRunAt</div>
+                <div class="muted" th:text="${lastRunAt}">time</div>
+              </div>
+              <div class="row">
+                <div>scanned</div>
+                <div class="muted" th:text="${lastResult.scanned}">0</div>
+              </div>
+              <div class="row">
+                <div>updated</div>
+                <div class="muted" th:text="${lastResult.updated}">0</div>
+              </div>
+            </div>
+
+            <div id="maintenanceMsg" class="alert hidden" style="margin-top: 1rem;"></div>
           </div>
+        </section>
 
-          <div class="actions">
-            <button class="button"
-                    type="button"
-                    data-action="maintenance-backfill"
-                    th:disabled="${running}">
-              실행
-            </button>
-          </div>
+        <section>
+          <div class="card" style="height: 100%;">
+            <h2 class="title">works의 기관 ID 정리(OpenAlex)</h2>
+            <p class="muted" style="min-height: 3rem;">
+              works 문서의 <code>institutions.id</code>가 <code>https://openalex.org/I...</code> 형태로 저장된 경우
+              <code>I...</code> 형태로 통일합니다. (검색/필터 일관성 개선)
+            </p>
 
-          <div class="alert" th:if="${running}">
-            <strong>실행 중</strong>
-            <div class="muted">완료 후 새로고침하면 결과가 표시됩니다.</div>
-          </div>
-
-          <div class="card" th:if="${lastResult != null}">
-            <div class="row">
-              <div>lastRunAt</div>
-              <div class="muted" th:text="${lastRunAt}">time</div>
+            <div class="grid grid-2" style="margin-top: 1rem;">
+              <div>
+                <label for="instIdBatch">배치 크기 (1~200)</label>
+                <input id="instIdBatch" type="number" min="1" max="200" value="200" />
+              </div>
+              <div>
+                <label for="instIdMax">최대 문서 수 (1~20000)</label>
+                <input id="instIdMax" type="number" min="1" max="20000" value="5000" />
+              </div>
             </div>
-            <div class="row">
-              <div>scanned</div>
-              <div class="muted" th:text="${lastResult.scanned}">0</div>
-            </div>
-            <div class="row">
-              <div>updated</div>
-              <div class="muted" th:text="${lastResult.updated}">0</div>
-            </div>
-          </div>
 
-          <div id="maintenanceMsg" class="alert hidden"></div>
-        </div>
-      </section>
+            <div class="actions" style="margin-top: 1.5rem;">
+              <button class="button"
+                      type="button"
+                      data-action="maintenance-normalize-inst-ids"
+                      th:disabled="${instIdRunning}"
+                      style="width: 100%;">
+                실행
+              </button>
+            </div>
+
+            <div class="alert" th:if="${instIdRunning}" style="margin-top: 1rem;">
+              <strong>실행 중</strong>
+              <div class="muted">완료 후 새로고침하면 결과가 표시됩니다.</div>
+            </div>
+
+            <div class="card" th:if="${instIdLastResult != null}" style="margin-top: 1rem; background-color: rgba(255,255,255,0.02);">
+              <div class="row">
+                <div>lastRunAt</div>
+                <div class="muted" th:text="${instIdLastRunAt}">time</div>
+              </div>
+              <div class="row">
+                <div>scanned</div>
+                <div class="muted" th:text="${instIdLastResult.scanned}">0</div>
+              </div>
+              <div class="row">
+                <div>updatedDocs</div>
+                <div class="muted" th:text="${instIdLastResult.updatedDocs}">0</div>
+              </div>
+              <div class="row">
+                <div>updatedInstitutionIds</div>
+                <div class="muted" th:text="${instIdLastResult.updatedInstitutionIds}">0</div>
+              </div>
+            </div>
+
+            <div id="maintenanceInstIdMsg" class="alert hidden" style="margin-top: 1rem;"></div>
+          </div>
+        </section>
+      </div>
 
       <section class="section">
         <div class="row">
-          <h2>Recent Maintenance Jobs</h2>
-          <div class="muted" th:text="${jobs != null ? #lists.size(jobs) + ' items' : '0 items'}">0</div>
+          <h2>최근 실행 내역</h2>
+          <div class="muted" th:text="${jobs != null ? #lists.size(jobs) + '건' : '0건'}">0</div>
         </div>
         <div class="card" th:if="${jobs == null or #lists.isEmpty(jobs)}">
           <p class="muted">최근 실행 내역이 없습니다.</p>
         </div>
-        <div class="card" th:if="${jobs != null and !#lists.isEmpty(jobs)}">
-          <div class="trend-head">
-            <div>type</div>
-            <div>status</div>
-            <div>started</div>
-            <div>ended</div>
-            <div class="right">scanned</div>
-            <div class="right">updated</div>
+        <div class="card table-scroll" th:if="${jobs != null and !#lists.isEmpty(jobs)}">
+          <div class="maintenance-head">
+            <div>작업</div>
+            <div>상태</div>
+            <div>시작</div>
+            <div>종료</div>
+            <div class="right">스캔</div>
+            <div class="right">업데이트</div>
           </div>
-          <div class="trend-row" th:each="j : ${jobs}">
+          <div class="maintenance-row" th:each="j : ${jobs}">
             <div th:text="${j.type}">type</div>
             <div th:text="${j.status}">status</div>
-            <div th:text="${j.startedAt}">started</div>
-            <div th:text="${j.endedAt}">ended</div>
+            <div th:text="${@viewTimeFormat.format(j.startedAt)}">started</div>
+            <div th:text="${@viewTimeFormat.format(j.endedAt)}">ended</div>
             <div class="right" th:text="${j.scannedCount}">0</div>
             <div class="right" th:text="${j.updatedCount}">0</div>
           </div>

@@ -9,6 +9,7 @@ import co.elastic.clients.elasticsearch.core.SearchResponse;
 import com.paperradar.search.dto.SearchRequest;
 import com.paperradar.search.model.SearchResultPage;
 import com.paperradar.search.model.WorkSummary;
+import com.paperradar.util.KeywordNormalizeUtil;
 import jakarta.validation.Valid;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -94,17 +95,33 @@ public class ElasticsearchSearchService implements SearchService {
         }
 
         if (request.keyword() != null && !request.keyword().isBlank()) {
-            filter.add(Query.of(q -> q.term(t -> t.field("keywords").value(request.keyword()))));
+            String normalizedKeyword = KeywordNormalizeUtil.normalize(request.keyword());
+            if (!normalizedKeyword.isBlank()) {
+                filter.add(Query.of(q -> q.term(t -> t.field("keywords").value(normalizedKeyword))));
+            }
         }
 
         if (request.instId() != null && !request.instId().isBlank()) {
-            filter.add(Query.of(q -> q.term(t -> t.field("institutions.id").value(request.instId()))));
+            List<String> instIds = normalizeInstitutionIds(request.instId());
+            if (instIds.size() == 1) {
+                filter.add(Query.of(q -> q.term(t -> t.field("institutions.id").value(instIds.getFirst()))));
+            } else if (!instIds.isEmpty()) {
+                filter.add(Query.of(q -> q.bool(b -> {
+                    instIds.forEach(id -> b.should(q2 -> q2.term(t -> t.field("institutions.id").value(id))));
+                    b.minimumShouldMatch("1");
+                    return b;
+                })));
+            }
         }
 
         if (request.author() != null && !request.author().isBlank()) {
             filter.add(Query.of(q -> q.nested(n -> n
                     .path("authors")
-                    .query(q2 -> q2.term(t -> t.field("authors.name").value(request.author())))
+                    .query(q2 -> q2.bool(b -> b
+                            .should(q3 -> q3.term(t -> t.field("authors.name").value(request.author())))
+                            .should(q3 -> q3.prefix(p -> p.field("authors.name").value(request.author().trim())))
+                            .minimumShouldMatch("1")
+                    ))
             )));
         }
 
@@ -135,6 +152,48 @@ public class ElasticsearchSearchService implements SearchService {
         }
 
         return Query.of(q -> q.bool(b -> b.must(must).filter(filter)));
+    }
+
+    private List<String> normalizeInstitutionIds(String raw) {
+        String trimmed = raw == null ? "" : raw.trim();
+        if (trimmed.isBlank()) {
+            return List.of();
+        }
+
+        Set<String> out = new LinkedHashSet<>();
+        out.add(trimmed);
+
+        String tail = toOpenAlexTailId(trimmed);
+        if (!tail.isBlank()) {
+            out.add(tail);
+            out.add("https://openalex.org/" + tail);
+        }
+
+        if (looksLikeOpenAlexTailId(trimmed)) {
+            out.add("https://openalex.org/" + trimmed);
+        }
+
+        return out.stream().filter(s -> s != null && !s.isBlank()).toList();
+    }
+
+    private boolean looksLikeOpenAlexTailId(String s) {
+        if (s == null) return false;
+        String t = s.trim();
+        if (t.length() < 2) return false;
+        if (t.charAt(0) != 'I') return false;
+        return Character.isDigit(t.charAt(1));
+    }
+
+    private String toOpenAlexTailId(String raw) {
+        if (raw == null) return "";
+        String t = raw.trim();
+        if (t.startsWith("https://openalex.org/")) {
+            return t.substring("https://openalex.org/".length());
+        }
+        if (t.startsWith("http://openalex.org/")) {
+            return t.substring("http://openalex.org/".length());
+        }
+        return "";
     }
 
     private List<SortOptions> buildSort(SearchRequest.Sort sort) {

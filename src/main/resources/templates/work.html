@@ -4,109 +4,101 @@
   <body>
     <header th:replace="~{layout :: header}"></header>
     <main class="container">
-      <h1>Work</h1>
+      <div class="row">
+        <h1>논문 상세</h1>
+        <a class="button secondary small" href="javascript:history.back()">뒤로가기</a>
+      </div>
 
       <div class="alert" th:if="${error != null}">
         <strong th:text="${error}">error</strong>
       </div>
 
-      <section class="section" th:if="${work != null}">
+      <section class="section" th:if="${work != null}" style="margin-top: 1rem;">
         <div class="card">
-          <h2 class="title" th:text="${work.title}">title</h2>
+          <h2 class="title" th:text="${work.title}" style="font-size: 1.75rem; line-height: 1.3; margin-bottom: 1rem;">title</h2>
           <div class="meta">
             <span th:text="${work.publicationDate}">date</span>
             <span th:text="${work.institutionsText}">institutions</span>
           </div>
-        </div>
 
-        <section class="section">
-          <div class="row">
-            <h2>External Links</h2>
-            <div class="muted">가능한 링크만 표시</div>
-          </div>
-          <div class="card" th:if="${#lists.isEmpty(work.links)}">
-            <p class="muted">제공 가능한 링크가 없습니다.</p>
-          </div>
-          <div class="card" th:if="${!#lists.isEmpty(work.links)}">
-            <div class="actions">
-              <a class="button secondary"
+          <div class="actions" style="margin-top: 1.5rem; border-top: 1px solid var(--border); padding-top: 1.5rem;">
+             <span class="muted small" style="margin-right: 0.5rem;">외부 링크:</span>
+             <span th:if="${#lists.isEmpty(work.links)}" class="muted small">제공 가능한 링크가 없습니다.</span>
+             <a class="button secondary small"
                  th:each="l : ${work.links}"
                  th:href="${l.url}"
                  target="_blank"
-                 rel="noopener noreferrer"
-                 th:text="${'원문(' + l.type + ')'}">
-                LINK
+                 rel="noopener noreferrer">
+                <span th:text="${'원문 (' + l.type + ')'}">LINK</span>
+                <span style="margin-left: 4px;">↗</span>
               </a>
+          </div>
+        </div>
+
+        <div class="grid grid-2 section">
+          <div class="span-full" th:if="${work.abstractText != null and !work.abstractText.isBlank()}">
+            <div class="row">
+              <h3>초록</h3>
+            </div>
+            <div class="card">
+              <p th:text="${work.abstractText}" style="line-height: 1.8; color: var(--text-muted);">abstract</p>
             </div>
           </div>
-        </section>
 
-        <section class="section" th:if="${work.abstractText != null and !work.abstractText.isBlank()}">
-          <div class="row">
-            <h2>Abstract</h2>
-          </div>
-          <div class="card">
-            <p th:text="${work.abstractText}">abstract</p>
-          </div>
-        </section>
-
-        <section class="section" th:if="${work.authors != null and !#lists.isEmpty(work.authors)}">
-          <div class="row">
-            <h2>Authors</h2>
-          </div>
-          <div class="card">
-            <div class="chips">
-              <a class="chip"
-                 th:each="a : ${work.authors}"
-                 th:href="@{/search(author=${a})}"
-                 th:text="${a}">
-                author
-              </a>
+          <div th:if="${work.authors != null and !#lists.isEmpty(work.authors)}">
+            <div class="row">
+              <h3>저자</h3>
+            </div>
+            <div class="card">
+              <div class="chips">
+                <a class="chip"
+                   th:each="a : ${work.authors}"
+                   th:href="@{/search(author=${a})}"
+                   th:text="${a}">
+                  author
+                </a>
+              </div>
             </div>
           </div>
-        </section>
 
-        <section class="section" th:if="${work.institutions != null and !#lists.isEmpty(work.institutions)}">
-          <div class="row">
-            <h2>Institutions</h2>
-          </div>
-          <div class="card">
-            <div class="chips">
-              <span th:each="i : ${work.institutions}">
-                <a class="chip"
-                   th:href="@{/search(instId=${i.id})}"
-                   th:text="${i.name != null and !i.name.isBlank()} ? ${i.name} : ${i.id}">
-                  inst
-                </a>
-                <a class="chip"
-                   th:if="${i.id != null and !i.id.isBlank()}"
-                   th:href="@{/institution/{eid}(eid=${T(com.paperradar.institution.util.InstitutionIdCodec).encode(i.id)})}">
-                  분석
-                </a>
-                <span th:if="${i.id != null and !i.id.isBlank() and work.keywords != null and !#lists.isEmpty(work.keywords)}">
+          <div th:if="${work.institutions != null and !#lists.isEmpty(work.institutions)}">
+            <div class="row">
+              <h3>관련 기관</h3>
+            </div>
+            <div class="card">
+              <div class="chips">
+                <span th:each="i : ${work.institutions}" style="display: inline-flex; gap: 0.5rem; align-items: center; margin-right: 0.5rem; margin-bottom: 0.5rem;">
                   <a class="chip"
-                     th:each="k,stat : ${work.keywords}"
-                     th:if="${stat.index < 5}"
-                     th:href="@{/search(instId=${i.id},keyword=${k})}"
-                     th:text="${'+' + k}">
-                    +kw
+                     th:href="@{/search(instId=${i.id})}"
+                     th:text="${i.name != null and !i.name.isBlank()} ? ${i.name} : ${i.id}">
+                    inst
+                  </a>
+                  <a class="button secondary small" style="padding: 0.1rem 0.4rem; font-size: 0.75rem;"
+                     th:if="${i.id != null and !i.id.isBlank()}"
+                     th:href="@{/institution/{eid}(eid=${T(com.paperradar.institution.util.InstitutionIdCodec).encode(i.id)})}">
+                    분석
                   </a>
                 </span>
-              </span>
+              </div>
             </div>
           </div>
-        </section>
 
-        <section class="section" th:if="${work.keywords != null and !#lists.isEmpty(work.keywords)}">
-          <div class="row">
-            <h2>Keywords</h2>
+          <div class="span-full" th:if="${work.keywords != null and !#lists.isEmpty(work.keywords)}">
+             <div class="row">
+                <h3>키워드</h3>
+             </div>
+             <div class="card">
+                <div class="chips">
+                  <a class="chip"
+                     th:each="k : ${work.keywords}"
+                     th:href="@{/search(keyword=${k})}"
+                     th:text="${k}">
+                    keyword
+                  </a>
+                </div>
+             </div>
           </div>
-          <div class="card">
-            <div class="chips">
-              <a class="chip" th:each="k : ${work.keywords}" th:href="@{/search(keyword=${k})}" th:text="${k}">kw</a>
-            </div>
-          </div>
-        </section>
+        </div>
       </section>
     </main>
     <footer th:replace="~{layout :: footer}"></footer>

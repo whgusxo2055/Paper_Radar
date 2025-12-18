@@ -1,10 +1,12 @@
 package com.paperradar.admin.maintenance.service;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch._types.ElasticsearchException;
 import co.elastic.clients.elasticsearch._types.SortOrder;
 import com.paperradar.admin.maintenance.model.MaintenanceJob;
 import com.paperradar.admin.maintenance.model.MaintenanceJobStatus;
 import com.paperradar.admin.maintenance.model.MaintenanceJobType;
+import com.paperradar.infra.es.ElasticsearchErrorUtil;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -59,6 +61,13 @@ public class ElasticsearchMaintenanceJobService implements MaintenanceJobService
                     .map(h -> h.source() == null ? null : fromSource((Map<?, ?>) h.source()))
                     .filter(j -> j != null)
                     .toList();
+        } catch (ElasticsearchException e) {
+            if (ElasticsearchErrorUtil.isIndexNotFound(e)) {
+                log.info("Index {} not found. Returning empty maintenance jobs.", INDEX);
+                return List.of();
+            }
+            log.warn("Failed to query maintenance jobs.", e);
+            return List.of();
         } catch (Exception e) {
             log.warn("Failed to query maintenance jobs.", e);
             return List.of();
@@ -78,6 +87,13 @@ public class ElasticsearchMaintenanceJobService implements MaintenanceJobService
                 return Optional.empty();
             }
             return Optional.of(fromSource((Map<?, ?>) res.hits().hits().getFirst().source()));
+        } catch (ElasticsearchException e) {
+            if (ElasticsearchErrorUtil.isIndexNotFound(e)) {
+                log.info("Index {} not found. Returning empty latest maintenance job.", INDEX);
+                return Optional.empty();
+            }
+            log.warn("Failed to query latest maintenance job.", e);
+            return Optional.empty();
         } catch (Exception e) {
             log.warn("Failed to query latest maintenance job.", e);
             return Optional.empty();

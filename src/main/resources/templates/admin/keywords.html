@@ -4,54 +4,127 @@
   <body>
     <header th:replace="~{layout :: header}"></header>
     <main class="container">
-      <h1>Admin / Keywords</h1>
-      <p class="muted">키워드 후보 승인 및 활성/비활성 토글</p>
+      <div class="row">
+        <h1>관리 / 키워드</h1>
+      </div>
+      <p class="muted">수집 대상 키워드를 관리합니다. 활성 키워드가 있어야 수집이 실제로 동작합니다.</p>
+
+      <section class="section">
+        <div class="card">
+          <h2 class="title">사용 방법</h2>
+          <div class="muted" style="line-height: 1.6;">
+            <div>- <strong>Enabled(활성)</strong>: 수집 시 OpenAlex에 질의합니다.</div>
+            <div>- <strong>Disabled(비활성)</strong>: 목록에는 유지되지만 수집에는 사용하지 않습니다.</div>
+            <div>- 수집이 0건으로 끝나면, 먼저 이 페이지에서 활성 키워드가 1개 이상인지 확인하세요.</div>
+          </div>
+          <div class="actions" style="margin-top: 1rem;">
+            <a class="button secondary" href="/admin/ingest">수집 실행으로 이동</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>키워드 직접 추가</h2>
+        <div class="card">
+          <div class="grid grid-2">
+            <div>
+              <label for="manualKeyword">키워드</label>
+              <input id="manualKeyword" type="text" placeholder="예: machine learning" />
+              <div class="muted small" style="margin-top: 0.5rem;">공백은 정리되고 소문자로 정규화됩니다.</div>
+            </div>
+            <div style="display: flex; align-items: flex-end;">
+              <button class="button" type="button" data-action="enable-keyword-manual">활성화(추가)</button>
+            </div>
+          </div>
+          <div id="keywordMsg" class="alert hidden" style="margin-top: 1rem;"></div>
+        </div>
+      </section>
 
       <section class="section">
         <div class="row">
-          <h2>Suggested</h2>
-          <div class="muted" th:text="${#lists.size(suggestedKeywords)} + ' items'"></div>
+          <h2>추천(후보)</h2>
+          <div class="muted" th:text="${#lists.size(suggestedKeywords)} + '개'"></div>
         </div>
         <div class="card" th:if="${#lists.isEmpty(suggestedKeywords)}">
-          <p class="muted">후보 키워드가 없습니다. (최근 30일 기준)</p>
+          <p class="muted">후보 키워드가 없습니다. (최근 30일 기준, 수집 데이터가 쌓이면 자동으로 제안됩니다)</p>
         </div>
         <div class="list" th:if="${!#lists.isEmpty(suggestedKeywords)}">
-          <div class="card row tight" th:each="k : ${suggestedKeywords}">
-            <div th:text="${k}">keyword</div>
-            <button class="button secondary" type="button" data-action="enable-keyword" th:attr="data-keyword=${k}">Enable</button>
+          <div class="card row tight" th:each="k : ${suggestedKeywords}" style="margin-bottom: 0.5rem; padding: 1rem;">
+            <div th:text="${k}" style="font-weight: 500;">keyword</div>
+            <button class="button secondary small" type="button" data-action="enable-keyword" th:attr="data-keyword=${k}">활성화</button>
           </div>
         </div>
       </section>
 
       <section class="section">
         <div class="row">
-          <h2>Enabled</h2>
-          <div class="muted" th:text="${#lists.size(enabledKeywords)} + ' items'"></div>
+          <h2>활성(Enabled)</h2>
+          <div class="muted" th:text="${totalEnabled} + '개'"></div>
         </div>
+
+        <div class="card" style="margin-bottom: 1rem; padding: 1rem;">
+          <form method="get" th:action="@{/admin/keywords}" style="display: flex; gap: 0.5rem;">
+            <input type="text" name="q" th:value="${q}" placeholder="키워드 검색..." style="flex: 1;" />
+            <button class="button secondary" type="submit">검색</button>
+            <a class="button secondary" th:if="${!q.isBlank()}" th:href="@{/admin/keywords}">초기화</a>
+          </form>
+        </div>
+
         <div class="card" th:if="${#lists.isEmpty(enabledKeywords)}">
-          <p class="muted">활성 키워드가 없습니다.</p>
+          <p class="muted">표시할 활성 키워드가 없습니다.</p>
+          <div class="actions" th:if="${totalEnabled == 0}">
+            <a class="button secondary" href="/admin/ingest">수집 실행으로 이동</a>
+          </div>
         </div>
         <div class="list" th:if="${!#lists.isEmpty(enabledKeywords)}">
-          <div class="card row tight" th:each="k : ${enabledKeywords}">
-            <div th:text="${k}">keyword</div>
-            <button class="button secondary" type="button" data-action="disable-keyword" th:attr="data-keyword=${k}">Disable</button>
+          <div class="card row tight" th:each="k : ${enabledKeywords}" style="margin-bottom: 0.5rem; padding: 1rem;">
+            <div th:text="${k}" style="font-weight: 500; color: var(--primary);">keyword</div>
+            <button class="button secondary small" type="button" data-action="disable-keyword" th:attr="data-keyword=${k}">비활성화</button>
           </div>
+        </div>
+
+        <div class="pager" th:if="${totalPages > 1}" style="display: flex; justify-content: center; gap: 0.5rem; margin-top: 1.5rem;">
+          <a class="button secondary small"
+             th:if="${currentPage > 1}"
+             th:href="@{/admin/keywords(q=${q},page=${currentPage - 1},disabledPage=${currentDisabledPage})}">
+            이전
+          </a>
+          <span class="muted" style="display: flex; align-items: center;" th:text="${currentPage} + ' / ' + ${totalPages}"></span>
+          <a class="button secondary small"
+             th:if="${currentPage < totalPages}"
+             th:href="@{/admin/keywords(q=${q},page=${currentPage + 1},disabledPage=${currentDisabledPage})}">
+            다음
+          </a>
         </div>
       </section>
 
       <section class="section">
         <div class="row">
-          <h2>Disabled</h2>
-          <div class="muted" th:text="${#lists.size(disabledKeywords)} + ' items'"></div>
+          <h2>비활성(Disabled)</h2>
+          <div class="muted" th:text="${totalDisabled} + '개'"></div>
         </div>
         <div class="card" th:if="${#lists.isEmpty(disabledKeywords)}">
           <p class="muted">비활성 키워드가 없습니다.</p>
         </div>
         <div class="list" th:if="${!#lists.isEmpty(disabledKeywords)}">
-          <div class="card row tight" th:each="k : ${disabledKeywords}">
-            <div th:text="${k}">keyword</div>
-            <button class="button secondary" type="button" data-action="enable-keyword" th:attr="data-keyword=${k}">Enable</button>
+          <div class="card row tight" th:each="k : ${disabledKeywords}" style="margin-bottom: 0.5rem; padding: 1rem;">
+            <div th:text="${k}" style="color: var(--text-muted);">keyword</div>
+            <button class="button secondary small" type="button" data-action="enable-keyword" th:attr="data-keyword=${k}">활성화</button>
           </div>
+        </div>
+
+        <div class="pager" th:if="${totalDisabledPages > 1}" style="display: flex; justify-content: center; gap: 0.5rem; margin-top: 1.5rem;">
+          <a class="button secondary small"
+             th:if="${currentDisabledPage > 1}"
+             th:href="@{/admin/keywords(q=${q},page=${currentPage},disabledPage=${currentDisabledPage - 1})}">
+            이전
+          </a>
+          <span class="muted" style="display: flex; align-items: center;" th:text="${currentDisabledPage} + ' / ' + ${totalDisabledPages}"></span>
+          <a class="button secondary small"
+             th:if="${currentDisabledPage < totalDisabledPages}"
+             th:href="@{/admin/keywords(q=${q},page=${currentPage},disabledPage=${currentDisabledPage + 1})}">
+            다음
+          </a>
         </div>
       </section>
     </main>

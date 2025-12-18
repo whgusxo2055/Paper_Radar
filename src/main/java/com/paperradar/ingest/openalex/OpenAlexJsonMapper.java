@@ -63,7 +63,10 @@ final class OpenAlexJsonMapper {
         JsonNode kws = w.path("keywords");
         if (kws.isArray()) {
             for (JsonNode k : kws) {
-                String kw = text(k, "keyword");
+                String kw = firstNonBlank(
+                        text(k, "display_name"),
+                        text(k, "keyword")
+                );
                 if (!kw.isBlank()) keywords.add(kw);
             }
         } else {

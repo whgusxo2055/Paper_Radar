@@ -40,31 +40,47 @@ public class HttpOpenAlexClient implements OpenAlexClient {
     private String openAlexEmail;
 
     @Override
-    public List<OpenAlexWork> fetchWorksByKeyword(String keyword, LocalDate fromPublicationDate, LocalDate fromUpdatedDate) {
+    public List<OpenAlexWork> fetchWorksByKeyword(
+            String keyword,
+            LocalDate fromPublicationDate,
+            LocalDate toPublicationDate,
+            LocalDate fromUpdatedDate
+    ) {
         String normalized = KeywordNormalizeUtil.normalize(keyword);
         if (normalized.isBlank()) {
             return List.of();
         }
         String search = normalized;
-        return fetchWorks(search, null, fromPublicationDate, fromUpdatedDate);
+        return fetchWorks(search, null, fromPublicationDate, toPublicationDate, fromUpdatedDate);
     }
 
     @Override
-    public List<OpenAlexWork> fetchWorksByInstitution(String openAlexInstitutionId, LocalDate fromPublicationDate, LocalDate fromUpdatedDate) {
+    public List<OpenAlexWork> fetchWorksByInstitution(
+            String openAlexInstitutionId,
+            LocalDate fromPublicationDate,
+            LocalDate toPublicationDate,
+            LocalDate fromUpdatedDate
+    ) {
         String inst = openAlexInstitutionId == null ? "" : openAlexInstitutionId.trim();
         if (inst.isBlank()) {
             return List.of();
         }
-        return fetchWorks(null, inst, fromPublicationDate, fromUpdatedDate);
+        return fetchWorks(null, inst, fromPublicationDate, toPublicationDate, fromUpdatedDate);
     }
 
-    private List<OpenAlexWork> fetchWorks(String search, String institutionId, LocalDate fromPublicationDate, LocalDate fromUpdatedDate) {
+    private List<OpenAlexWork> fetchWorks(
+            String search,
+            String institutionId,
+            LocalDate fromPublicationDate,
+            LocalDate toPublicationDate,
+            LocalDate fromUpdatedDate
+    ) {
         List<OpenAlexWork> all = new ArrayList<>();
         String cursor = "*";
 
         for (int page = 0; page < MAX_PAGES; page++) {
             try {
-                URI uri = buildUri(search, institutionId, fromPublicationDate, fromUpdatedDate, cursor);
+                URI uri = buildUri(search, institutionId, fromPublicationDate, toPublicationDate, fromUpdatedDate, cursor);
                 HttpRequest req = HttpRequest.newBuilder(uri)
                         .timeout(Duration.ofSeconds(20))
                         .header("Accept", "application/json")
@@ -72,8 +88,10 @@ public class HttpOpenAlexClient implements OpenAlexClient {
                         .build();
                 HttpResponse<String> res = httpClient.send(req, HttpResponse.BodyHandlers.ofString());
                 if (res.statusCode() < 200 || res.statusCode() >= 300) {
-                    log.warn("OpenAlex request failed (status={}): {}", res.statusCode(), res.body());
-                    break;
+                    String body = res.body() == null ? "" : res.body();
+                    String snippet = body.length() > 500 ? body.substring(0, 500) + "..." : body;
+                    throw new IllegalStateException("OpenAlex request failed (status=%d, uri=%s): %s"
+                            .formatted(res.statusCode(), uri, snippet));
                 }
                 JsonNode root = objectMapper.readTree(res.body());
                 all.addAll(OpenAlexJsonMapper.parseWorks(root));
@@ -85,14 +103,21 @@ public class HttpOpenAlexClient implements OpenAlexClient {
                 cursor = next;
             } catch (Exception e) {
                 log.warn("OpenAlex request error.", e);
-                break;
+                throw new IllegalStateException("OpenAlex request error.", e);
             }
         }
 
         return all;
     }
 
-    private URI buildUri(String search, String institutionId, LocalDate fromPublicationDate, LocalDate fromUpdatedDate, String cursor) {
+    private URI buildUri(
+            String search,
+            String institutionId,
+            LocalDate fromPublicationDate,
+            LocalDate toPublicationDate,
+            LocalDate fromUpdatedDate,
+            String cursor
+    ) {
         StringBuilder sb = new StringBuilder(BASE).append("/works?");
         sb.append("per-page=").append(PER_PAGE);
         sb.append("&cursor=").append(url(cursor));
@@ -107,6 +132,9 @@ public class HttpOpenAlexClient implements OpenAlexClient {
         }
         if (fromPublicationDate != null) {
             filters.add("from_publication_date:" + fromPublicationDate);
+        }
+        if (toPublicationDate != null) {
+            filters.add("to_publication_date:" + toPublicationDate);
         }
         if (fromUpdatedDate != null) {
             filters.add("from_updated_date:" + fromUpdatedDate);
@@ -126,4 +154,3 @@ public class HttpOpenAlexClient implements OpenAlexClient {
         return URLEncoder.encode(s, StandardCharsets.UTF_8);
     }
 }
-

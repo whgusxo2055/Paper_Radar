@@ -1,7 +1,9 @@
 package com.paperradar.admin.service;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch._types.ElasticsearchException;
 import co.elastic.clients.elasticsearch.core.GetResponse;
+import com.paperradar.infra.es.ElasticsearchErrorUtil;
 import com.paperradar.admin.model.ActiveConfig;
 import com.paperradar.util.KeywordNormalizeUtil;
 import java.time.Instant;
@@ -35,6 +37,13 @@ public class ElasticsearchConfigService implements ConfigService {
                 return seeded;
             }
             return fromSource(response.source());
+        } catch (ElasticsearchException e) {
+            if (ElasticsearchErrorUtil.isIndexNotFound(e)) {
+                log.warn("Index {} not found. Returning empty active_config.", INDEX);
+                return new ActiveConfig(List.of(), List.of(), List.of(), List.of(), Instant.EPOCH);
+            }
+            log.error("Failed to load active_config.", e);
+            return new ActiveConfig(List.of(), List.of(), List.of(), List.of(), Instant.EPOCH);
         } catch (Exception e) {
             log.error("Failed to load active_config.", e);
             return new ActiveConfig(List.of(), List.of(), List.of(), List.of(), Instant.EPOCH);
@@ -73,7 +82,7 @@ public class ElasticsearchConfigService implements ConfigService {
 
     @Override
     public ActiveConfig enableInstitution(String instId) {
-        String id = instId == null ? "" : instId.trim();
+        String id = normalizeInstitutionId(instId);
         if (id.isBlank()) {
             return getActiveConfig();
         }
@@ -88,7 +97,7 @@ public class ElasticsearchConfigService implements ConfigService {
 
     @Override
     public ActiveConfig disableInstitution(String instId) {
-        String id = instId == null ? "" : instId.trim();
+        String id = normalizeInstitutionId(instId);
         if (id.isBlank()) {
             return getActiveConfig();
         }
@@ -132,10 +141,35 @@ public class ElasticsearchConfigService implements ConfigService {
     private ActiveConfig fromSource(Map<?, ?> source) {
         List<String> enabledKeywords = asStringList(source.get("enabled_keywords")).stream().map(KeywordNormalizeUtil::normalize).filter(s -> !s.isBlank()).distinct().toList();
         List<String> disabledKeywords = asStringList(source.get("disabled_keywords")).stream().map(KeywordNormalizeUtil::normalize).filter(s -> !s.isBlank()).distinct().toList();
-        List<String> enabledInstitutions = asStringList(source.get("enabled_institutions")).stream().map(String::trim).filter(s -> !s.isBlank()).distinct().toList();
-        List<String> disabledInstitutions = asStringList(source.get("disabled_institutions")).stream().map(String::trim).filter(s -> !s.isBlank()).distinct().toList();
+        List<String> enabledInstitutions = asStringList(source.get("enabled_institutions")).stream()
+                .map(this::normalizeInstitutionId)
+                .filter(s -> !s.isBlank())
+                .distinct()
+                .toList();
+        List<String> disabledInstitutions = asStringList(source.get("disabled_institutions")).stream()
+                .map(this::normalizeInstitutionId)
+                .filter(s -> !s.isBlank())
+                .distinct()
+                .toList();
         Instant updatedAt = parseInstant(source.get("updated_at"));
         return new ActiveConfig(enabledKeywords, disabledKeywords, enabledInstitutions, disabledInstitutions, updatedAt);
+    }
+
+    private String normalizeInstitutionId(String raw) {
+        if (raw == null) {
+            return "";
+        }
+        String trimmed = raw.trim();
+        if (trimmed.isBlank()) {
+            return "";
+        }
+        if (trimmed.startsWith("https://openalex.org/")) {
+            return trimmed.substring("https://openalex.org/".length());
+        }
+        if (trimmed.startsWith("http://openalex.org/")) {
+            return trimmed.substring("http://openalex.org/".length());
+        }
+        return trimmed;
     }
 
     private List<String> asStringList(Object value) {
@@ -161,4 +195,3 @@ public class ElasticsearchConfigService implements ConfigService {
         }
     }
 }
-

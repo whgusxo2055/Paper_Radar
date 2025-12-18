@@ -4,70 +4,103 @@
   <body>
     <header th:replace="~{layout :: header}"></header>
     <main class="container">
-      <h1>Admin / Institutions</h1>
-      <p class="muted">기관 추가 및 활성/비활성 토글 (OpenAlex ID 기준)</p>
+      <div class="row">
+        <h1>관리 / 기관</h1>
+      </div>
+      <p class="muted">수집/분석 기준이 되는 기관을 관리합니다. 기관은 OpenAlex 기관 ID를 기준으로 합니다.</p>
 
       <section class="section">
-        <h2>Add</h2>
         <div class="card">
-          <div class="grid">
-            <div>
-              <label for="instSearch">Institution search</label>
-              <input id="instSearch" type="text" placeholder="기관명을 입력 (자동완성)" />
-              <div class="muted">선택하면 ID/이름이 아래에 채워집니다.</div>
+          <h2 class="title">사용 방법</h2>
+          <div class="muted" style="line-height: 1.6;">
+            <div>- 기관을 추가하면 기본적으로 <strong>활성(Enabled)</strong> 상태가 되며, 수집 시 해당 기관 소속 논문을 가져옵니다.</div>
+            <div>- ID는 <code>I4210108322</code> 형태 또는 <code>https://openalex.org/I4210108322</code> 형태를 모두 허용합니다.</div>
+            <div>- 수집이 0건으로 끝나면, 활성 기관/키워드가 1개 이상인지 확인하세요.</div>
+          </div>
+          <div class="actions" style="margin-top: 1rem;">
+            <a class="button secondary" href="/admin/ingest">수집 실행으로 이동</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>기관 추가/업데이트</h2>
+        <div class="card">
+          <div class="grid grid-2">
+            <div class="span-full">
+              <label for="instSearch">기관 검색</label>
+              <input id="instSearch" type="text" placeholder="예: Stanford, MIT, 서울대학교, KAIST (자동완성)" />
+              <div class="muted" style="margin-top: 0.5rem;">
+                <div>자동완성에서 선택하면 아래 칸에 <strong>기관 ID</strong>와 <strong>표시 이름</strong>이 자동으로 채워집니다.</div>
+                <div class="small" style="margin-top: 0.5rem;">
+                  검색 예시:
+                  <span class="chip">stanford</span>
+                  <span class="chip">mit</span>
+                  <span class="chip">massachusetts institute</span>
+                  <span class="chip">seoul</span>
+                  <span class="chip">kaist</span>
+                </div>
+                <div class="small muted" style="margin-top: 0.5rem;">팁: 영문 검색이 더 잘 매칭될 수 있습니다. (예: “서울대학교” 대신 “Seoul National University”)</div>
+              </div>
             </div>
             <div>
-              <label for="instIdAdmin">Institution ID</label>
+              <label for="instIdAdmin">기관 ID (OpenAlex)</label>
               <input id="instIdAdmin" type="text" placeholder="https://openalex.org/I..." />
+              <div class="muted small" style="margin-top: 0.5rem;">예: <code>I97018004</code> 또는 <code>https://openalex.org/I97018004</code></div>
             </div>
             <div>
-              <label for="displayNameAdmin">Display name</label>
-              <input id="displayNameAdmin" type="text" placeholder="예: Stanford University" />
+              <label for="displayNameAdmin">표시 이름</label>
+              <input id="displayNameAdmin" type="text" placeholder="예: Stanford University (선택)" />
+              <div class="muted small" style="margin-top: 0.5rem;">비워도 됩니다. 비워두면 OpenAlex에서 이름을 조회해 자동으로 채웁니다.</div>
             </div>
-            <div>
-              <label for="aliasAdmin">Alias (optional)</label>
+            <div class="span-full">
+              <label for="aliasAdmin">별칭 (선택)</label>
               <input id="aliasAdmin" type="text" placeholder="예: 스탠퍼드" />
+              <div class="muted small" style="margin-top: 0.5rem;">별칭은 기관 자동완성(내부)에서 검색 키워드로도 사용됩니다.</div>
             </div>
           </div>
-          <div class="actions">
+          <div class="actions" style="margin-top: 1.5rem; justify-content: flex-end;">
             <button id="addInstitutionBtn" class="button" type="button">추가/업데이트</button>
           </div>
-          <div id="adminInstMsg" class="alert hidden"></div>
+          <div id="adminInstMsg" class="alert hidden" style="margin-top: 1rem;"></div>
         </div>
       </section>
 
       <section class="section">
         <div class="row">
-          <h2>Enabled</h2>
-          <div class="muted" th:text="${#lists.size(enabledInstitutions)} + ' items'"></div>
+          <h2>활성(Enabled)</h2>
+          <div class="muted" th:text="${#lists.size(enabledInstitutions)} + '개'"></div>
         </div>
         <div class="card" th:if="${#lists.isEmpty(enabledInstitutions)}">
-          <p class="muted">활성 기관이 없습니다.</p>
+          <p class="muted">활성 기관이 없습니다. 기관 기반으로 수집하려면 최소 1개 이상 활성화하세요.</p>
+          <div class="actions" style="margin-top: 1rem;">
+            <a class="button secondary" href="/admin/ingest">수집 실행으로 이동</a>
+          </div>
         </div>
         <div class="list" th:if="${!#lists.isEmpty(enabledInstitutions)}">
-          <div class="card row tight" th:each="it : ${enabledInstitutions}">
+          <div class="card row tight" th:each="it : ${enabledInstitutions}" style="margin-bottom: 0.5rem; padding: 1rem;">
             <div>
-              <div>
+              <div style="font-weight: 500; color: var(--primary);">
                 <a th:href="@{/institution/{eid}(eid=${T(com.paperradar.institution.util.InstitutionIdCodec).encode(it.id)})}"
                    th:text="${it.displayName}">name</a>
               </div>
-              <div class="muted" th:text="${it.id}">id</div>
+              <div class="muted small" th:text="${it.id}">id</div>
             </div>
-            <button class="button secondary" type="button" data-action="disable-institution" th:attr="data-inst-id=${it.id}">Disable</button>
+            <button class="button secondary small" type="button" data-action="disable-institution" th:attr="data-inst-id=${it.id}">비활성화</button>
           </div>
         </div>
       </section>
 
       <section class="section">
         <div class="row">
-          <h2>Disabled</h2>
-          <div class="muted" th:text="${#lists.size(disabledInstitutions)} + ' items'"></div>
+          <h2>비활성(Disabled)</h2>
+          <div class="muted" th:text="${#lists.size(disabledInstitutions)} + '개'"></div>
         </div>
         <div class="card" th:if="${#lists.isEmpty(disabledInstitutions)}">
           <p class="muted">비활성 기관이 없습니다.</p>
         </div>
         <div class="list" th:if="${!#lists.isEmpty(disabledInstitutions)}">
-          <div class="card row tight" th:each="it : ${disabledInstitutions}">
+          <div class="card row tight" th:each="it : ${disabledInstitutions}" style="margin-bottom: 0.5rem; padding: 1rem;">
             <div>
               <div>
                 <a th:href="@{/institution/{eid}(eid=${T(com.paperradar.institution.util.InstitutionIdCodec).encode(it.id)})}"
@@ -75,7 +108,7 @@
               </div>
               <div class="muted" th:text="${it.id}">id</div>
             </div>
-            <button class="button secondary" type="button" data-action="enable-institution" th:attr="data-inst-id=${it.id}">Enable</button>
+            <button class="button secondary small" type="button" data-action="enable-institution" th:attr="data-inst-id=${it.id}">활성화</button>
           </div>
         </div>
       </section>

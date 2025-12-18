@@ -4,48 +4,52 @@
   <body>
     <header th:replace="~{layout :: header}"></header>
     <main class="container">
-      <h1>Search</h1>
+      <div class="row">
+        <h1>검색</h1>
+      </div>
+
       <form class="card" method="get" th:action="@{/search}" th:object="${req}">
-        <div class="grid">
-          <div>
-            <label for="q">Query</label>
-            <input id="q" th:field="*{q}" type="search" placeholder="예: graph neural network" />
+        <div class="grid grid-4">
+          <div class="span-full">
+            <label for="q">검색어</label>
+            <input id="q" th:field="*{q}" type="search" placeholder="논문 제목, 초록 등 검색..." />
+          </div>
+          <div class="span-2">
+            <label for="instId">기관</label>
+            <input id="instId" th:field="*{instId}" type="text" placeholder="기관명 또는 ID (자동완성)" />
+          </div>
+          <div class="span-2">
+            <label for="keyword">키워드</label>
+            <input id="keyword" th:field="*{keyword}" type="text" placeholder="키워드" />
+          </div>
+          <div class="span-2">
+            <label for="author">저자</label>
+            <input id="author" th:field="*{author}" type="text" placeholder="저자명" />
           </div>
           <div>
-            <label for="keyword">Keyword</label>
-            <input id="keyword" th:field="*{keyword}" type="text" placeholder="예: llm" />
-          </div>
-          <div>
-            <label for="instId">Institution ID</label>
-            <input id="instId" th:field="*{instId}" type="text" placeholder="예: https://openalex.org/I123..." />
-          </div>
-          <div>
-            <label for="author">Author</label>
-            <input id="author" th:field="*{author}" type="text" placeholder="예: Andrew Ng" />
-          </div>
-          <div>
-            <label for="from">From</label>
+            <label for="from">시작일</label>
             <input id="from" th:field="*{from}" type="date" />
           </div>
           <div>
-            <label for="to">To</label>
+            <label for="to">종료일</label>
             <input id="to" th:field="*{to}" type="date" />
           </div>
           <div>
-            <label for="sort">Sort</label>
+            <label for="sort">정렬</label>
             <select id="sort" th:field="*{sort}">
-              <option value="relevance">relevance</option>
-              <option value="newest">newest</option>
-              <option value="cited">cited</option>
+              <option value="relevance">관련도순</option>
+              <option value="newest">최신순</option>
+              <option value="cited">인용순</option>
             </select>
           </div>
           <div>
-            <label for="size">Size</label>
+            <label for="size">표시 개수</label>
             <input id="size" th:field="*{size}" type="number" min="1" max="50" />
           </div>
         </div>
 
-        <div class="actions">
+        <div class="actions" style="margin-top: 1.5rem; justify-content: flex-end;">
+          <a class="button secondary" th:href="@{/search}">초기화</a>
           <button class="button" type="submit">검색</button>
         </div>
 
@@ -59,8 +63,8 @@
 
       <section class="section" th:if="${result != null}">
         <div class="row">
-          <h2>Results</h2>
-          <div class="muted" th:text="'total: ' + ${result.total}"></div>
+          <h2>검색 결과</h2>
+          <div class="muted" th:text="'총 ' + ${result.total} + '건'"></div>
         </div>
 
         <div class="card" th:if="${result.items.isEmpty()}">
@@ -68,35 +72,35 @@
         </div>
 
         <div class="list" th:if="${!result.items.isEmpty()}">
-          <article class="card" th:each="it : ${result.items}">
+          <article class="card" th:each="it : ${result.items}" style="margin-bottom: 1rem;">
             <h3 class="title">
               <a th:href="@{/work/{eid}(eid=${T(com.paperradar.work.util.WorkIdCodec).encode(it.id)})}"
                  th:text="${it.title}">
                 title
               </a>
             </h3>
-            <div class="meta">
-              <span th:text="${it.institutions}">institutions</span>
+            <div class="meta" style="margin-top: 0.5rem;">
+              <span th:if="${it.institutions != null and !it.institutions.isBlank()}" th:text="${it.institutions}">institutions</span>
               <span th:text="${it.publicationDate}">date</span>
             </div>
-            <div class="actions">
-              <a class="button secondary"
+            <div class="actions" style="margin-top: 1rem;">
+              <a class="button secondary small"
                  th:href="@{/work/{eid}(eid=${T(com.paperradar.work.util.WorkIdCodec).encode(it.id)})}">
-                상세
+                상세보기
               </a>
-              <a class="button secondary"
+              <a class="button secondary small"
                  th:if="${it.bestLinkUrl != null and !it.bestLinkUrl.isBlank()}"
                  th:href="${it.bestLinkUrl}"
                  target="_blank"
-                 rel="noopener noreferrer"
-                 th:text="${it.bestLinkType != null and !it.bestLinkType.isBlank()} ? ('원문(' + ${it.bestLinkType} + ')') : '원문'">
-                원문
+                 rel="noopener noreferrer">
+                 <span th:text="${it.bestLinkType != null and !it.bestLinkType.isBlank()} ? ('원문 (' + ${it.bestLinkType} + ')') : '원문 보기'">원문</span>
+                 <span style="margin-left: 4px;">↗</span>
               </a>
             </div>
           </article>
         </div>
 
-        <div class="pager" th:if="${result.total > 0}">
+        <div class="pager" th:if="${result.total > 0}" style="display: flex; justify-content: center; gap: 0.5rem; margin-top: 2rem;">
           <a class="button secondary"
              th:if="${result.page > 1}"
              th:href="@{/search(q=${req.q},keyword=${req.keyword},instId=${req.instId},author=${req.author},from=${req.from},to=${req.to},sort=${req.sort},size=${req.size},page=${req.page - 1})}">

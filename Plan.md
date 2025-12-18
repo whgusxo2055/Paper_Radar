@@ -29,7 +29,7 @@ Spring Validation 사용 (확정)
 관리(키워드 후보 승인/비활성, 기관 추가/비활성, 수집 수동 실행, 수집 로그 조회) 동작  
 트렌드(키워드/기관) Top N 표시 및 검색 페이지로 연결  
 하루 1회 스케줄 수집 동작(증분 기본)  
-초기 5년 수집은 “운영자가 수동 실행(full 모드)”로 수행 가능
+초기 3년 수집은 “운영자가 수동 실행(full 모드)”로 수행 가능
 
 품질  
 ES 문서 중복 없음(upsert)  
@@ -72,7 +72,7 @@ ELASTICSEARCH_URL=http://elasticsearch:9200
 APP_TIMEZONE=Asia/Seoul  
 INGEST_SCHEDULE_CRON=0 0 3 * * * (매일 03:00 예시, 필요 시 변경)  
 OPENALEX_EMAIL=(권장, polite pool/연락용)  
-INGEST_LOOKBACK_YEARS=5 (확정)
+INGEST_LOOKBACK_YEARS=3 (확정)
 
 ---
 
@@ -278,7 +278,7 @@ IngestService 구현
 mode=incremental  
 마지막 성공 job 시각 기반으로 증분(가능하면 updated/changed 필터 활용)  
 mode=full  
-최근 5년 기준으로 전체 수집(운영자 수동 실행용)
+최근 3년 기준으로 전체 수집(운영자 수동 실행용)
 
 수집 저장 전략 확정  
 works 문서 ID: source_platform + ":" + source_work_id(OpenAlex work id)  

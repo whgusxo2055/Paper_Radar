@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title th:text="${title}">PAPER_RADAR</title>
     <link rel="stylesheet" th:href="@{/css/app.css}" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <script th:src="@{/js/suggest.js}" defer></script>
     <script th:src="@{/js/admin.js}" defer></script>
   </head>
@@ -13,11 +14,11 @@
       <div class="container">
         <a class="brand" th:href="@{/}">PAPER_RADAR</a>
         <nav class="nav">
-          <a th:href="@{/search}">Search</a>
-          <a th:href="@{/admin/keywords}">Admin</a>
-          <a th:href="@{/admin/institutions}">Institutions</a>
-          <a th:href="@{/admin/ingest}">Ingest</a>
-          <a th:href="@{/admin/maintenance}">Maintenance</a>
+          <a th:href="@{/search}" th:classappend="${currentUri != null && currentUri.startsWith('/search')} ? 'active'">검색</a>
+          <a th:href="@{/admin/keywords}" th:classappend="${currentUri != null && currentUri.startsWith('/admin/keywords')} ? 'active'">관리(키워드)</a>
+          <a th:href="@{/admin/institutions}" th:classappend="${currentUri != null && currentUri.startsWith('/admin/institutions')} ? 'active'">관리(기관)</a>
+          <a th:href="@{/admin/ingest}" th:classappend="${currentUri != null && currentUri.startsWith('/admin/ingest')} ? 'active'">수집</a>
+          <a th:href="@{/admin/maintenance}" th:classappend="${currentUri != null && currentUri.startsWith('/admin/maintenance')} ? 'active'">유지보수</a>
         </nav>
       </div>
     </header>

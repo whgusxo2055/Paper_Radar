@@ -4,42 +4,45 @@
   <body>
     <header th:replace="~{layout :: header}"></header>
     <main class="container">
-      <h1>Institution</h1>
+      <div class="row">
+        <h1>기관 분석</h1>
+        <a class="button secondary small" href="javascript:history.back()">뒤로가기</a>
+      </div>
 
       <div class="alert" th:if="${error != null}">
         <strong th:text="${error}">error</strong>
       </div>
 
-      <section class="section" th:if="${analysis != null}">
+      <section class="section" th:if="${analysis != null}" style="margin-top: 1rem;">
         <div class="card">
-          <h2 class="title" th:text="${analysis.displayName}">displayName</h2>
-          <div class="muted small" th:text="${analysis.institutionId}">id</div>
+          <h2 class="title" th:text="${analysis.displayName}" style="font-size: 2rem; margin-bottom: 0.5rem;">displayName</h2>
+          <div class="muted small" th:text="${analysis.institutionId}" style="margin-bottom: 1.5rem;">id</div>
           <div class="actions">
-            <a class="button secondary" th:href="@{/search(instId=${analysis.institutionId})}">이 기관으로 검색</a>
+            <a class="button" th:href="@{/search(instId=${analysis.institutionId})}">이 기관의 논문 검색</a>
           </div>
         </div>
 
-        <div class="grid section">
-          <div class="card">
-            <div class="muted">최근 30일 논문 수</div>
-            <div style="font-size: 28px; font-weight: 700" th:text="${analysis.works30d}">0</div>
+        <div class="grid grid-2 section">
+          <div class="card stat-card">
+            <div class="stat-label">최근 30일 논문 수</div>
+            <div class="stat-value" th:text="${analysis.works30d}">0</div>
           </div>
-          <div class="card">
-            <div class="muted">최근 90일 논문 수</div>
-            <div style="font-size: 28px; font-weight: 700" th:text="${analysis.works90d}">0</div>
+          <div class="card stat-card">
+            <div class="stat-label">최근 90일 논문 수</div>
+            <div class="stat-value" th:text="${analysis.works90d}">0</div>
           </div>
         </div>
 
         <section class="section">
           <div class="row">
-            <h2>Top Keywords</h2>
+            <h2>주요 키워드</h2>
             <div class="actions">
-              <a class="button secondary"
+              <a class="button secondary small"
                  th:href="@{/institution/{eid}(eid=${encodedInstitutionId},kwWindow=30)}"
                  th:classappend="${kwWindow == 30} ? ' active' : ''">
                 최근 30일
               </a>
-              <a class="button secondary"
+              <a class="button secondary small"
                  th:href="@{/institution/{eid}(eid=${encodedInstitutionId},kwWindow=90)}"
                  th:classappend="${kwWindow == 90} ? ' active' : ''">
                 최근 90일
@@ -63,35 +66,35 @@
 
         <section class="section">
           <div class="row">
-            <h2>Recent Works</h2>
+            <h2>최근 논문</h2>
             <div class="muted" th:text="${#lists.size(analysis.recentWorks)} + ' items'"></div>
           </div>
           <div class="card" th:if="${#lists.isEmpty(analysis.recentWorks)}">
             <p class="muted">최근 논문이 없습니다.</p>
           </div>
           <div class="list" th:if="${!#lists.isEmpty(analysis.recentWorks)}">
-            <article class="card" th:each="w : ${analysis.recentWorks}">
+            <article class="card" th:each="w : ${analysis.recentWorks}" style="margin-bottom: 1rem;">
               <h3 class="title">
                 <a th:href="@{/work/{eid}(eid=${T(com.paperradar.work.util.WorkIdCodec).encode(w.id)})}"
                    th:text="${w.title}">
                   title
                 </a>
               </h3>
-              <div class="meta">
+              <div class="meta" style="margin-top: 0.5rem;">
                 <span th:text="${w.publicationDate}">date</span>
               </div>
-              <div class="actions">
-                <a class="button secondary"
+              <div class="actions" style="margin-top: 1rem;">
+                <a class="button secondary small"
                    th:href="@{/work/{eid}(eid=${T(com.paperradar.work.util.WorkIdCodec).encode(w.id)})}">
-                  상세
+                  상세보기
                 </a>
-                <a class="button secondary"
+                <a class="button secondary small"
                    th:if="${w.bestLinkUrl != null and !w.bestLinkUrl.isBlank()}"
                    th:href="${w.bestLinkUrl}"
                    target="_blank"
-                   rel="noopener noreferrer"
-                   th:text="${w.bestLinkType != null and !w.bestLinkType.isBlank()} ? ('원문(' + ${w.bestLinkType} + ')') : '원문'">
-                  원문
+                   rel="noopener noreferrer">
+                   <span th:text="${w.bestLinkType != null and !w.bestLinkType.isBlank()} ? ('원문 (' + ${w.bestLinkType} + ')') : '원문 보기'">원문</span>
+                   <span style="margin-left: 4px;">↗</span>
                 </a>
               </div>
             </article>

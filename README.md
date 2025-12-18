@@ -11,14 +11,14 @@
 - 기관 분석: `/institution/{encodedInstitutionId}` (Top Keywords 30/90일 토글)
 
 ## 빠른 시작(권장: Docker Compose)
-1) JAR 빌드
-```bash
-./gradlew clean bootJar
-```
-
-2) 실행
+1) 실행
 ```bash
 docker compose up -d --build
+```
+
+- (선택) 캐시를 무시하고 “클린 빌드”로 재배포하고 싶다면
+```bash
+./scripts/compose-up-clean.sh
 ```
 
 - App: `http://localhost:8080`
@@ -47,4 +47,3 @@ docker compose up -d --build
 - 요구사항: `SRS.md`
 - 개발 계획: `Plan.md`
 - 협업 규칙: `AGENTS.md`
-

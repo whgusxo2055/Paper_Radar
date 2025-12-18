@@ -4,77 +4,106 @@
   <body>
     <header th:replace="~{layout :: header}"></header>
     <main class="container">
-      <h1>PAPER_RADAR</h1>
-      <p class="muted">논문·기술 트렌드 레이더 (내부 서비스)</p>
-      <div class="actions">
-        <a class="button" th:href="@{/search}">검색으로 이동</a>
-        <a class="button secondary" th:href="@{/admin/keywords}">관리 화면</a>
+      <div class="hero">
+        <h1>PAPER_RADAR</h1>
+        <p>논문·기술 트렌드 레이더</p>
+        <div class="actions">
+          <a class="button" th:href="@{/search}">검색 시작하기</a>
+          <a class="button secondary" th:href="@{/admin/keywords}">관리자 대시보드</a>
+        </div>
       </div>
 
-      <section class="section">
-        <div class="row">
-          <h2>Keyword Trends (Top 20)</h2>
-          <div class="muted">trend_score / MA7 / MA30 / 30d total</div>
-        </div>
-        <div class="card" th:if="${keywordTrends == null or #lists.isEmpty(keywordTrends)}">
-          <p class="muted">표시할 키워드 트렌드가 없습니다. (Admin에서 키워드를 활성화하세요)</p>
-        </div>
-        <div class="card" th:if="${keywordTrends != null and !#lists.isEmpty(keywordTrends)}">
-          <div class="trend-head">
-            <div>#</div>
-            <div>Keyword</div>
-            <div class="right">trend</div>
-            <div class="right">MA7</div>
-            <div class="right">MA30</div>
-            <div class="right">30d</div>
-          </div>
-          <div class="trend-row" th:each="it,stat : ${keywordTrends}">
-            <div th:text="${stat.count}">1</div>
-            <div>
-              <a th:href="@{/search(keyword=${it.key})}" th:text="${it.label}">keyword</a>
+      <div class="grid grid-2">
+        <section class="span-full">
+          <div class="card">
+            <div class="row" style="margin-bottom: 0.5rem;">
+              <h2 style="margin: 0;">트렌드 지표 안내</h2>
             </div>
-            <div class="right" th:text="${#numbers.formatDecimal(it.trendScore, 1, 3)}">0.000</div>
-            <div class="right" th:text="${#numbers.formatDecimal(it.ma7, 1, 2)}">0.00</div>
-            <div class="right" th:text="${#numbers.formatDecimal(it.ma30, 1, 2)}">0.00</div>
-            <div class="right" th:text="${#numbers.formatDecimal(it.total30, 1, 0)}">0</div>
+            <p class="muted" style="margin: 0;">
+              Trend는 (MA7 - MA30) / max(MA30, 1)로 계산한 상승률 지표입니다.
+              MA7은 최근 7일 이동평균, MA30은 최근 30일 이동평균, 30d는 최근 30일 총 논문 수를 의미합니다.
+              이동평균은 일별 변동을 완화해 추세를 더 잘 보이게 하는 지표입니다.
+            </p>
           </div>
-        </div>
-      </section>
+        </section>
+        <section class="span-full">
+          <div class="card">
+            <div class="row" style="margin-bottom: 0.5rem;">
+              <h2 style="margin: 0;">사이트 사용 방법</h2>
+            </div>
+            <p class="muted" style="margin: 0;">
+              상단 "검색 시작하기"에서 키워드나 기관으로 논문을 찾을 수 있습니다.
+              검색 결과는 기간, 기관, 키워드, 저자 필터로 좁힐 수 있습니다.
+              메인 트렌드에서 상승 키워드와 기관을 클릭하면 바로 검색으로 이동합니다.
+              운영자는 관리 화면에서 키워드/기관을 활성화하고 수집을 실행합니다.
+            </p>
+          </div>
+        </section>
 
-      <section class="section">
-        <div class="row">
-          <h2>Institution Trends (Top 20)</h2>
-          <div class="muted">trend_score / MA7 / MA30 / 30d total</div>
-        </div>
-        <div class="card" th:if="${institutionTrends == null or #lists.isEmpty(institutionTrends)}">
-          <p class="muted">표시할 기관 트렌드가 없습니다. (Admin에서 기관을 활성화하세요)</p>
-        </div>
-        <div class="card" th:if="${institutionTrends != null and !#lists.isEmpty(institutionTrends)}">
-          <div class="trend-head">
-            <div>#</div>
-            <div>Institution</div>
-            <div class="right">trend</div>
-            <div class="right">MA7</div>
-            <div class="right">MA30</div>
-            <div class="right">30d</div>
+        <section>
+          <div class="row">
+            <h2>키워드 트렌드</h2>
+            <div class="muted small">Top 20</div>
           </div>
-          <div class="trend-row" th:each="it,stat : ${institutionTrends}">
-            <div th:text="${stat.count}">1</div>
-            <div>
-              <a th:href="@{/search(instId=${it.key})}" th:text="${it.label}">institution</a>
-              <a class="muted small"
-                 th:href="@{/institution/{eid}(eid=${T(com.paperradar.institution.util.InstitutionIdCodec).encode(it.key)})}">
-                분석
-              </a>
-              <div class="muted small" th:text="${it.key}">id</div>
+          <div class="card" th:if="${keywordTrends == null or #lists.isEmpty(keywordTrends)}">
+            <p class="muted text-center">데이터가 없습니다.</p>
+          </div>
+          <div class="card" style="padding: 0; overflow: hidden;" th:if="${keywordTrends != null and !#lists.isEmpty(keywordTrends)}">
+            <div class="trend-head">
+              <div>#</div>
+              <div>키워드</div>
+              <div class="right">Trend</div>
+              <div class="right">MA7</div>
+              <div class="right">MA30</div>
+              <div class="right">30d</div>
             </div>
-            <div class="right" th:text="${#numbers.formatDecimal(it.trendScore, 1, 3)}">0.000</div>
-            <div class="right" th:text="${#numbers.formatDecimal(it.ma7, 1, 2)}">0.00</div>
-            <div class="right" th:text="${#numbers.formatDecimal(it.ma30, 1, 2)}">0.00</div>
-            <div class="right" th:text="${#numbers.formatDecimal(it.total30, 1, 0)}">0</div>
+            <div class="trend-row" th:each="it,stat : ${keywordTrends}">
+              <div th:text="${stat.count}">1</div>
+              <div>
+                <a th:href="@{/search(keyword=${it.key})}" th:text="${it.label}">keyword</a>
+              </div>
+              <div class="right" th:text="${#numbers.formatDecimal(it.trendScore, 1, 3)}">0.000</div>
+              <div class="right" th:text="${#numbers.formatDecimal(it.ma7, 1, 2)}">0.00</div>
+              <div class="right" th:text="${#numbers.formatDecimal(it.ma30, 1, 2)}">0.00</div>
+              <div class="right" th:text="${#numbers.formatDecimal(it.total30, 1, 0)}">0</div>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+
+        <section>
+          <div class="row">
+            <h2>기관 트렌드</h2>
+            <div class="muted small">Top 20</div>
+          </div>
+          <div class="card" th:if="${institutionTrends == null or #lists.isEmpty(institutionTrends)}">
+            <p class="muted text-center">데이터가 없습니다.</p>
+          </div>
+          <div class="card" style="padding: 0; overflow: hidden;" th:if="${institutionTrends != null and !#lists.isEmpty(institutionTrends)}">
+            <div class="trend-head">
+              <div>#</div>
+              <div>기관</div>
+              <div class="right">Trend</div>
+              <div class="right">MA7</div>
+              <div class="right">MA30</div>
+              <div class="right">30d</div>
+            </div>
+            <div class="trend-row" th:each="it,stat : ${institutionTrends}">
+              <div th:text="${stat.count}">1</div>
+              <div>
+                <a th:href="@{/search(instId=${it.key})}" th:text="${it.label}">institution</a>
+                <a class="muted small" style="margin-left: 0.5rem; opacity: 0.7;"
+                   th:href="@{/institution/{eid}(eid=${T(com.paperradar.institution.util.InstitutionIdCodec).encode(it.key)})}">
+                  ↗
+                </a>
+              </div>
+              <div class="right" th:text="${#numbers.formatDecimal(it.trendScore, 1, 3)}">0.000</div>
+              <div class="right" th:text="${#numbers.formatDecimal(it.ma7, 1, 2)}">0.00</div>
+              <div class="right" th:text="${#numbers.formatDecimal(it.ma30, 1, 2)}">0.00</div>
+              <div class="right" th:text="${#numbers.formatDecimal(it.total30, 1, 0)}">0</div>
+            </div>
+          </div>
+        </section>
+      </div>
     </main>
     <footer th:replace="~{layout :: footer}"></footer>
   </body>
