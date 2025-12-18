@@ -33,7 +33,7 @@ services:
       - OPENALEX_EMAIL=${OPENALEX_EMAIL:-}
       - paperradar.enrich.crossref.enabled=${PAPERRADAR_ENRICH_CROSSREF_ENABLED:-false}
     ports:
-      - "8080:8080"
+      - "80:80"
     depends_on:
       - elasticsearch
 

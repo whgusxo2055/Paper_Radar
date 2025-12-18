@@ -21,7 +21,7 @@ docker compose up -d --build
 ./scripts/compose-up-clean.sh
 ```
 
-- App: `http://localhost:8080`
+- App: `http://localhost:80`
 - Elasticsearch: `http://localhost:9200`
 
 환경 변수 예시는 `.envexample`을 참고하고, `.env`로 복사해 사용합니다.

@@ -17,7 +17,7 @@
 
 ## Build, Test, and Development Commands
 Gradle Wrapper 사용을 권장합니다.
-- `./gradlew bootRun`: 로컬 실행(일반적으로 `http://localhost:8080`).
+- `./gradlew bootRun`: 로컬 실행(기본 `http://localhost:80`, 권한 이슈가 있으면 `SERVER_PORT`로 변경).
 - `./gradlew test`: 테스트 실행(JUnit Platform).
 - `./gradlew build`: 컴파일 + 테스트 + 패키징(`build/`).
 - `./gradlew clean`: 빌드 산출물 삭제.

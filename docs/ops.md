@@ -21,7 +21,7 @@ Elasticsearch는 이름 지정 볼륨(`paperradar-esdata`)에 데이터가 저�
 docker compose up -d --build
 ```
 
-- App: `http://localhost:8080`
+- App: `http://localhost:80`
 - Elasticsearch: `http://localhost:9200`
 
 ### 환경 변수 예시
