@@ -70,9 +70,6 @@
         item.classList.toggle('selected', cb.checked);
       }
     });
-
-    // Update floating action bar
-    updateFloatingBar();
   }
 
   function syncSelectAll(scope) {
@@ -83,42 +80,8 @@
     updateSelectionCount(scope);
   }
 
-  function updateFloatingBar() {
-    const totalSelected = getSelectedKeywords().length;
-    const bar = document.getElementById('floatingActionBar');
-    if (!bar) return;
-
-    const countEl = bar.querySelector('.count');
-    if (countEl) {
-      countEl.textContent = `${totalSelected}개 선택됨`;
-    }
-
-    bar.classList.toggle('visible', totalSelected > 0);
-  }
-
-  // Create floating action bar
-  function createFloatingBar() {
-    if (document.getElementById('floatingActionBar')) return;
-
-    const bar = document.createElement('div');
-    bar.id = 'floatingActionBar';
-    bar.className = 'floating-action-bar';
-    bar.innerHTML = `
-      <span class="count">0개 선택됨</span>
-      <div class="actions">
-        <button class="button small" type="button" data-action="floating-enable-bulk">일괄 활성화</button>
-        <button class="button secondary small" type="button" data-action="floating-disable-bulk">일괄 비활성화</button>
-        <button class="button secondary small" type="button" data-action="floating-clear">선택 해제</button>
-      </div>
-    `;
-    document.body.appendChild(bar);
-  }
-
-  // Initialize floating bar on page load
+  // Initialize scope counters on page load
   document.addEventListener('DOMContentLoaded', () => {
-    createFloatingBar();
-
-    // Initialize all scope counters
     ['suggested', 'enabled', 'disabled'].forEach(scope => {
       updateSelectionCount(scope);
     });
@@ -134,37 +97,6 @@
     location.reload();
   });
 
-  onClick('button[data-action="enable-keyword-bulk"]', async () => {
-    const msg = document.getElementById("keywordBulkMsg");
-    const keywords = getSelectedKeywords();
-    if (keywords.length === 0) {
-      setMsg(msg, "선택된 키워드가 없습니다.", "warn");
-      return;
-    }
-    try {
-      await postJson("/api/admin/keywords/enable-bulk", { keywords });
-      setMsg(msg, `총 ${keywords.length}개 키워드를 활성화했습니다. 곧 새로고침합니다.`, "success");
-      setTimeout(() => location.reload(), 800);
-    } catch (e) {
-      setMsg(msg, `일괄 활성화 실패: ${e && e.message ? e.message : ""}`.trim(), "danger");
-    }
-  });
-
-  onClick('button[data-action="disable-keyword-bulk"]', async () => {
-    const msg = document.getElementById("keywordBulkMsg");
-    const keywords = getSelectedKeywords();
-    if (keywords.length === 0) {
-      setMsg(msg, "선택된 키워드가 없습니다.", "warn");
-      return;
-    }
-    try {
-      await postJson("/api/admin/keywords/disable-bulk", { keywords });
-      setMsg(msg, `총 ${keywords.length}개 키워드를 비활성화했습니다. 곧 새로고침합니다.`, "success");
-      setTimeout(() => location.reload(), 800);
-    } catch (e) {
-      setMsg(msg, `일괄 비활성화 실패: ${e && e.message ? e.message : ""}`.trim(), "danger");
-    }
-  });
 
   // Scope-specific bulk actions
   onClick('button[data-action="enable-scope-bulk"]', async (btn) => {
@@ -203,37 +135,6 @@
     }
   });
 
-  // Floating bar actions
-  onClick('button[data-action="floating-enable-bulk"]', async () => {
-    const keywords = getSelectedKeywords();
-    if (keywords.length === 0) return;
-    try {
-      await postJson("/api/admin/keywords/enable-bulk", { keywords });
-      location.reload();
-    } catch (e) {
-      alert(`일괄 활성화 실패: ${e && e.message ? e.message : ""}`);
-    }
-  });
-
-  onClick('button[data-action="floating-disable-bulk"]', async () => {
-    const keywords = getSelectedKeywords();
-    if (keywords.length === 0) return;
-    try {
-      await postJson("/api/admin/keywords/disable-bulk", { keywords });
-      location.reload();
-    } catch (e) {
-      alert(`일괄 비활성화 실패: ${e && e.message ? e.message : ""}`);
-    }
-  });
-
-  onClick('button[data-action="floating-clear"]', () => {
-    getKeywordCheckboxes().forEach((cb) => {
-      cb.checked = false;
-    });
-    ['suggested', 'enabled', 'disabled'].forEach(scope => {
-      syncSelectAll(scope);
-    });
-  });
 
   document.addEventListener("change", (e) => {
     const el = e.target;

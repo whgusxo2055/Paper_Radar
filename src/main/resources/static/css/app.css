@@ -529,59 +529,10 @@ footer {
   display: none !important;
 }
 
-/* Floating Action Bar */
-.floating-action-bar {
-  position: fixed;
-  bottom: 2rem;
-  left: 50%;
-  transform: translateX(-50%) translateY(100px);
-  background-color: var(--bg-card);
-  border: 1px solid var(--primary);
-  border-radius: var(--radius);
-  padding: 1rem 1.5rem;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-  z-index: 1000;
-  opacity: 0;
-  visibility: hidden;
-  transition: transform 0.3s ease, opacity 0.3s ease, visibility 0.3s ease;
-}
-
-.floating-action-bar.visible {
-  transform: translateX(-50%) translateY(0);
-  opacity: 1;
-  visibility: visible;
-}
-
-.floating-action-bar .count {
-  font-weight: 600;
-  color: var(--primary);
-}
-
-.floating-action-bar .actions {
-  display: flex;
-  gap: 0.5rem;
-}
-
 @media (max-width: 768px) {
   .keyword-controls {
     flex-wrap: wrap;
     gap: 0.5rem;
-  }
-
-  .floating-action-bar {
-    bottom: 1rem;
-    left: 1rem;
-    right: 1rem;
-    transform: translateX(0) translateY(100px);
-    flex-direction: column;
-    text-align: center;
-  }
-
-  .floating-action-bar.visible {
-    transform: translateX(0) translateY(0);
   }
 }
 

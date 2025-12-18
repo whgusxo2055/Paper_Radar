@@ -15,8 +15,8 @@
         <a class="brand" th:href="@{/}">PAPER_RADAR</a>
         <nav class="nav">
           <a th:href="@{/search}" th:classappend="${currentUri != null && currentUri.startsWith('/search')} ? 'active'">검색</a>
-          <a th:href="@{/admin/keywords}" th:classappend="${currentUri != null && currentUri.startsWith('/admin/keywords')} ? 'active'">관리(키워드)</a>
-          <a th:href="@{/admin/institutions}" th:classappend="${currentUri != null && currentUri.startsWith('/admin/institutions')} ? 'active'">관리(기관)</a>
+          <a th:href="@{/admin/keywords}" th:classappend="${currentUri != null && currentUri.startsWith('/admin/keywords')} ? 'active'">키워드</a>
+          <a th:href="@{/admin/institutions}" th:classappend="${currentUri != null && currentUri.startsWith('/admin/institutions')} ? 'active'">기관</a>
           <a th:href="@{/admin/ingest}" th:classappend="${currentUri != null && currentUri.startsWith('/admin/ingest')} ? 'active'">수집</a>
           <a th:href="@{/admin/maintenance}" th:classappend="${currentUri != null && currentUri.startsWith('/admin/maintenance')} ? 'active'">유지보수</a>
         </nav>
