@@ -41,16 +41,39 @@
       </section>
 
       <section class="section">
+        <div class="card">
+          <div class="row">
+            <div>
+              <h2 class="title">선택한 키워드 일괄 활성화</h2>
+              <div class="muted small">추천/비활성/활성 목록에서 선택한 키워드를 한 번에 처리합니다.</div>
+            </div>
+            <div style="display: flex; gap: 0.5rem;">
+              <button class="button" type="button" data-action="enable-keyword-bulk">선택 활성화</button>
+              <button class="button secondary" type="button" data-action="disable-keyword-bulk">선택 비활성화</button>
+            </div>
+          </div>
+          <div id="keywordBulkMsg" class="alert hidden" style="margin-top: 1rem;"></div>
+        </div>
+      </section>
+
+      <section class="section">
         <div class="row">
           <h2>추천(후보)</h2>
           <div class="muted" th:text="${#lists.size(suggestedKeywords)} + '개'"></div>
+          <label class="muted small" style="display: flex; align-items: center; gap: 0.35rem;">
+            <input type="checkbox" data-action="select-all-keywords" data-scope="suggested" />
+            전체 선택
+          </label>
         </div>
         <div class="card" th:if="${#lists.isEmpty(suggestedKeywords)}">
           <p class="muted">후보 키워드가 없습니다. (최근 30일 기준, 수집 데이터가 쌓이면 자동으로 제안됩니다)</p>
         </div>
         <div class="list" th:if="${!#lists.isEmpty(suggestedKeywords)}">
           <div class="card row tight" th:each="k : ${suggestedKeywords}" style="margin-bottom: 0.5rem; padding: 1rem;">
-            <div th:text="${k}" style="font-weight: 500;">keyword</div>
+            <label style="display: flex; align-items: center; gap: 0.5rem;">
+              <input type="checkbox" data-role="keyword-select" data-scope="suggested" th:attr="data-keyword=${k}" />
+              <span th:text="${k}" style="font-weight: 500;">keyword</span>
+            </label>
             <button class="button secondary small" type="button" data-action="enable-keyword" th:attr="data-keyword=${k}">활성화</button>
           </div>
         </div>
@@ -60,6 +83,10 @@
         <div class="row">
           <h2>활성(Enabled)</h2>
           <div class="muted" th:text="${totalEnabled} + '개'"></div>
+          <label class="muted small" style="display: flex; align-items: center; gap: 0.35rem;">
+            <input type="checkbox" data-action="select-all-keywords" data-scope="enabled" />
+            전체 선택
+          </label>
         </div>
 
         <div class="card" style="margin-bottom: 1rem; padding: 1rem;">
@@ -78,7 +105,10 @@
         </div>
         <div class="list" th:if="${!#lists.isEmpty(enabledKeywords)}">
           <div class="card row tight" th:each="k : ${enabledKeywords}" style="margin-bottom: 0.5rem; padding: 1rem;">
-            <div th:text="${k}" style="font-weight: 500; color: var(--primary);">keyword</div>
+            <label style="display: flex; align-items: center; gap: 0.5rem;">
+              <input type="checkbox" data-role="keyword-select" data-scope="enabled" th:attr="data-keyword=${k}" />
+              <span th:text="${k}" style="font-weight: 500; color: var(--primary);">keyword</span>
+            </label>
             <button class="button secondary small" type="button" data-action="disable-keyword" th:attr="data-keyword=${k}">비활성화</button>
           </div>
         </div>
@@ -102,13 +132,20 @@
         <div class="row">
           <h2>비활성(Disabled)</h2>
           <div class="muted" th:text="${totalDisabled} + '개'"></div>
+          <label class="muted small" style="display: flex; align-items: center; gap: 0.35rem;">
+            <input type="checkbox" data-action="select-all-keywords" data-scope="disabled" />
+            전체 선택
+          </label>
         </div>
         <div class="card" th:if="${#lists.isEmpty(disabledKeywords)}">
           <p class="muted">비활성 키워드가 없습니다.</p>
         </div>
         <div class="list" th:if="${!#lists.isEmpty(disabledKeywords)}">
           <div class="card row tight" th:each="k : ${disabledKeywords}" style="margin-bottom: 0.5rem; padding: 1rem;">
-            <div th:text="${k}" style="color: var(--text-muted);">keyword</div>
+            <label style="display: flex; align-items: center; gap: 0.5rem;">
+              <input type="checkbox" data-role="keyword-select" data-scope="disabled" th:attr="data-keyword=${k}" />
+              <span th:text="${k}" style="color: var(--text-muted);">keyword</span>
+            </label>
             <button class="button secondary small" type="button" data-action="enable-keyword" th:attr="data-keyword=${k}">활성화</button>
           </div>
         </div>

@@ -14,8 +14,8 @@ public class HomeController {
 
     @GetMapping("/")
     public String index(Model model) {
-        model.addAttribute("keywordTrends", trendService.keywordTrends(20));
-        model.addAttribute("institutionTrends", trendService.institutionTrends(20));
+        model.addAttribute("keywordTrends", trendService.keywordTrends(10));
+        model.addAttribute("institutionTrends", trendService.institutionTrends(10));
         return "index";
     }
 }

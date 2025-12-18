@@ -36,6 +36,20 @@
     });
   }
 
+  function getKeywordCheckboxes(scope) {
+    if (scope) {
+      return Array.from(document.querySelectorAll(`input[data-role="keyword-select"][data-scope="${scope}"]`));
+    }
+    return Array.from(document.querySelectorAll('input[data-role="keyword-select"]'));
+  }
+
+  function syncSelectAll(scope) {
+    const selectAll = document.querySelector(`input[data-action="select-all-keywords"][data-scope="${scope}"]`);
+    if (!selectAll) return;
+    const boxes = getKeywordCheckboxes(scope);
+    selectAll.checked = boxes.length > 0 && boxes.every((cb) => cb.checked);
+  }
+
   onClick('button[data-action="enable-keyword"]', async (btn) => {
     await postJson("/api/admin/keywords/enable", { keyword: btn.dataset.keyword });
     location.reload();
@@ -44,6 +58,62 @@
   onClick('button[data-action="disable-keyword"]', async (btn) => {
     await postJson("/api/admin/keywords/disable", { keyword: btn.dataset.keyword });
     location.reload();
+  });
+
+  onClick('button[data-action="enable-keyword-bulk"]', async () => {
+    const msg = document.getElementById("keywordBulkMsg");
+    const keywords = getKeywordCheckboxes()
+      .filter((cb) => cb.checked)
+      .map((cb) => cb.dataset.keyword)
+      .filter((v) => v && v.trim().length > 0);
+    if (keywords.length === 0) {
+      setMsg(msg, "선택된 키워드가 없습니다.", "warn");
+      return;
+    }
+    try {
+      await postJson("/api/admin/keywords/enable-bulk", { keywords });
+      setMsg(msg, `총 ${keywords.length}개 키워드를 활성화했습니다. 곧 새로고침합니다.`, "success");
+      setTimeout(() => location.reload(), 800);
+    } catch (e) {
+      setMsg(msg, `일괄 활성화 실패: ${e && e.message ? e.message : ""}`.trim(), "danger");
+    }
+  });
+
+  onClick('button[data-action="disable-keyword-bulk"]', async () => {
+    const msg = document.getElementById("keywordBulkMsg");
+    const keywords = getKeywordCheckboxes()
+      .filter((cb) => cb.checked)
+      .map((cb) => cb.dataset.keyword)
+      .filter((v) => v && v.trim().length > 0);
+    if (keywords.length === 0) {
+      setMsg(msg, "선택된 키워드가 없습니다.", "warn");
+      return;
+    }
+    try {
+      await postJson("/api/admin/keywords/disable-bulk", { keywords });
+      setMsg(msg, `총 ${keywords.length}개 키워드를 비활성화했습니다. 곧 새로고침합니다.`, "success");
+      setTimeout(() => location.reload(), 800);
+    } catch (e) {
+      setMsg(msg, `일괄 비활성화 실패: ${e && e.message ? e.message : ""}`.trim(), "danger");
+    }
+  });
+
+  document.addEventListener("change", (e) => {
+    const el = e.target;
+    if (!el) return;
+    if (el.matches('input[data-action="select-all-keywords"]')) {
+      const scope = el.dataset.scope;
+      getKeywordCheckboxes(scope).forEach((cb) => {
+        cb.checked = el.checked;
+      });
+      return;
+    }
+    if (el.matches('input[data-role="keyword-select"]')) {
+      const scope = el.dataset.scope;
+      if (scope) {
+        syncSelectAll(scope);
+      }
+    }
   });
 
   onClick('button[data-action="enable-institution"]', async (btn) => {

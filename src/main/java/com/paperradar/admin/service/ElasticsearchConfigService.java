@@ -66,6 +66,26 @@ public class ElasticsearchConfigService implements ConfigService {
     }
 
     @Override
+    public ActiveConfig enableKeywords(List<String> keywords) {
+        if (keywords == null || keywords.isEmpty()) {
+            return getActiveConfig();
+        }
+        return update(cfg -> {
+            Set<String> enabled = new LinkedHashSet<>(cfg.enabledKeywords());
+            Set<String> disabled = new LinkedHashSet<>(cfg.disabledKeywords());
+            for (String keyword : keywords) {
+                String normalized = KeywordNormalizeUtil.normalize(keyword);
+                if (normalized.isBlank()) {
+                    continue;
+                }
+                enabled.add(normalized);
+                disabled.remove(normalized);
+            }
+            return new ActiveConfig(List.copyOf(enabled), List.copyOf(disabled), cfg.enabledInstitutions(), cfg.disabledInstitutions(), Instant.now());
+        });
+    }
+
+    @Override
     public ActiveConfig disableKeyword(String keyword) {
         String normalized = KeywordNormalizeUtil.normalize(keyword);
         if (normalized.isBlank()) {
@@ -76,6 +96,26 @@ public class ElasticsearchConfigService implements ConfigService {
             Set<String> disabled = new LinkedHashSet<>(cfg.disabledKeywords());
             enabled.remove(normalized);
             disabled.add(normalized);
+            return new ActiveConfig(List.copyOf(enabled), List.copyOf(disabled), cfg.enabledInstitutions(), cfg.disabledInstitutions(), Instant.now());
+        });
+    }
+
+    @Override
+    public ActiveConfig disableKeywords(List<String> keywords) {
+        if (keywords == null || keywords.isEmpty()) {
+            return getActiveConfig();
+        }
+        return update(cfg -> {
+            Set<String> enabled = new LinkedHashSet<>(cfg.enabledKeywords());
+            Set<String> disabled = new LinkedHashSet<>(cfg.disabledKeywords());
+            for (String keyword : keywords) {
+                String normalized = KeywordNormalizeUtil.normalize(keyword);
+                if (normalized.isBlank()) {
+                    continue;
+                }
+                enabled.remove(normalized);
+                disabled.add(normalized);
+            }
             return new ActiveConfig(List.copyOf(enabled), List.copyOf(disabled), cfg.enabledInstitutions(), cfg.disabledInstitutions(), Instant.now());
         });
     }

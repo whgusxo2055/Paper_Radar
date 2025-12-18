@@ -43,7 +43,7 @@
         <section>
           <div class="row">
             <h2>키워드 트렌드</h2>
-            <div class="muted small">Top 20</div>
+            <div class="muted small">Top 10</div>
           </div>
           <div class="card" th:if="${keywordTrends == null or #lists.isEmpty(keywordTrends)}">
             <p class="muted text-center">데이터가 없습니다.</p>
@@ -73,7 +73,7 @@
         <section>
           <div class="row">
             <h2>기관 트렌드</h2>
-            <div class="muted small">Top 20</div>
+            <div class="muted small">Top 10</div>
           </div>
           <div class="card" th:if="${institutionTrends == null or #lists.isEmpty(institutionTrends)}">
             <p class="muted text-center">데이터가 없습니다.</p>
