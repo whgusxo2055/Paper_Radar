@@ -43,12 +43,86 @@
     return Array.from(document.querySelectorAll('input[data-role="keyword-select"]'));
   }
 
+  function getSelectedKeywords(scope) {
+    return getKeywordCheckboxes(scope)
+      .filter((cb) => cb.checked)
+      .map((cb) => cb.dataset.keyword)
+      .filter((v) => v && v.trim().length > 0);
+  }
+
+  function updateSelectionCount(scope) {
+    const count = getSelectedKeywords(scope).length;
+    const countEl = document.querySelector(`.selection-count[data-scope="${scope}"]`);
+    if (countEl) {
+      countEl.textContent = `${count}개 선택`;
+    }
+
+    // Enable/disable scope bulk buttons
+    const enableBtn = document.querySelector(`button[data-action="enable-scope-bulk"][data-scope="${scope}"]`);
+    const disableBtn = document.querySelector(`button[data-action="disable-scope-bulk"][data-scope="${scope}"]`);
+    if (enableBtn) enableBtn.disabled = count === 0;
+    if (disableBtn) disableBtn.disabled = count === 0;
+
+    // Update item selected state
+    getKeywordCheckboxes(scope).forEach((cb) => {
+      const item = cb.closest('.keyword-item');
+      if (item) {
+        item.classList.toggle('selected', cb.checked);
+      }
+    });
+
+    // Update floating action bar
+    updateFloatingBar();
+  }
+
   function syncSelectAll(scope) {
     const selectAll = document.querySelector(`input[data-action="select-all-keywords"][data-scope="${scope}"]`);
     if (!selectAll) return;
     const boxes = getKeywordCheckboxes(scope);
     selectAll.checked = boxes.length > 0 && boxes.every((cb) => cb.checked);
+    updateSelectionCount(scope);
   }
+
+  function updateFloatingBar() {
+    const totalSelected = getSelectedKeywords().length;
+    const bar = document.getElementById('floatingActionBar');
+    if (!bar) return;
+
+    const countEl = bar.querySelector('.count');
+    if (countEl) {
+      countEl.textContent = `${totalSelected}개 선택됨`;
+    }
+
+    bar.classList.toggle('visible', totalSelected > 0);
+  }
+
+  // Create floating action bar
+  function createFloatingBar() {
+    if (document.getElementById('floatingActionBar')) return;
+
+    const bar = document.createElement('div');
+    bar.id = 'floatingActionBar';
+    bar.className = 'floating-action-bar';
+    bar.innerHTML = `
+      <span class="count">0개 선택됨</span>
+      <div class="actions">
+        <button class="button small" type="button" data-action="floating-enable-bulk">일괄 활성화</button>
+        <button class="button secondary small" type="button" data-action="floating-disable-bulk">일괄 비활성화</button>
+        <button class="button secondary small" type="button" data-action="floating-clear">선택 해제</button>
+      </div>
+    `;
+    document.body.appendChild(bar);
+  }
+
+  // Initialize floating bar on page load
+  document.addEventListener('DOMContentLoaded', () => {
+    createFloatingBar();
+
+    // Initialize all scope counters
+    ['suggested', 'enabled', 'disabled'].forEach(scope => {
+      updateSelectionCount(scope);
+    });
+  });
 
   onClick('button[data-action="enable-keyword"]', async (btn) => {
     await postJson("/api/admin/keywords/enable", { keyword: btn.dataset.keyword });
@@ -62,10 +136,7 @@
 
   onClick('button[data-action="enable-keyword-bulk"]', async () => {
     const msg = document.getElementById("keywordBulkMsg");
-    const keywords = getKeywordCheckboxes()
-      .filter((cb) => cb.checked)
-      .map((cb) => cb.dataset.keyword)
-      .filter((v) => v && v.trim().length > 0);
+    const keywords = getSelectedKeywords();
     if (keywords.length === 0) {
       setMsg(msg, "선택된 키워드가 없습니다.", "warn");
       return;
@@ -81,10 +152,7 @@
 
   onClick('button[data-action="disable-keyword-bulk"]', async () => {
     const msg = document.getElementById("keywordBulkMsg");
-    const keywords = getKeywordCheckboxes()
-      .filter((cb) => cb.checked)
-      .map((cb) => cb.dataset.keyword)
-      .filter((v) => v && v.trim().length > 0);
+    const keywords = getSelectedKeywords();
     if (keywords.length === 0) {
       setMsg(msg, "선택된 키워드가 없습니다.", "warn");
       return;
@@ -98,6 +166,75 @@
     }
   });
 
+  // Scope-specific bulk actions
+  onClick('button[data-action="enable-scope-bulk"]', async (btn) => {
+    const scope = btn.dataset.scope;
+    const msgId = scope === 'suggested' ? 'suggestedMsg' : scope === 'enabled' ? 'enabledMsg' : 'disabledMsg';
+    const msg = document.getElementById(msgId);
+    const keywords = getSelectedKeywords(scope);
+    if (keywords.length === 0) {
+      setMsg(msg, "선택된 키워드가 없습니다.", "warn");
+      return;
+    }
+    try {
+      await postJson("/api/admin/keywords/enable-bulk", { keywords });
+      setMsg(msg, `총 ${keywords.length}개 키워드를 활성화했습니다. 곧 새로고침합니다.`, "success");
+      setTimeout(() => location.reload(), 800);
+    } catch (e) {
+      setMsg(msg, `일괄 활성화 실패: ${e && e.message ? e.message : ""}`.trim(), "danger");
+    }
+  });
+
+  onClick('button[data-action="disable-scope-bulk"]', async (btn) => {
+    const scope = btn.dataset.scope;
+    const msgId = scope === 'suggested' ? 'suggestedMsg' : scope === 'enabled' ? 'enabledMsg' : 'disabledMsg';
+    const msg = document.getElementById(msgId);
+    const keywords = getSelectedKeywords(scope);
+    if (keywords.length === 0) {
+      setMsg(msg, "선택된 키워드가 없습니다.", "warn");
+      return;
+    }
+    try {
+      await postJson("/api/admin/keywords/disable-bulk", { keywords });
+      setMsg(msg, `총 ${keywords.length}개 키워드를 비활성화했습니다. 곧 새로고침합니다.`, "success");
+      setTimeout(() => location.reload(), 800);
+    } catch (e) {
+      setMsg(msg, `일괄 비활성화 실패: ${e && e.message ? e.message : ""}`.trim(), "danger");
+    }
+  });
+
+  // Floating bar actions
+  onClick('button[data-action="floating-enable-bulk"]', async () => {
+    const keywords = getSelectedKeywords();
+    if (keywords.length === 0) return;
+    try {
+      await postJson("/api/admin/keywords/enable-bulk", { keywords });
+      location.reload();
+    } catch (e) {
+      alert(`일괄 활성화 실패: ${e && e.message ? e.message : ""}`);
+    }
+  });
+
+  onClick('button[data-action="floating-disable-bulk"]', async () => {
+    const keywords = getSelectedKeywords();
+    if (keywords.length === 0) return;
+    try {
+      await postJson("/api/admin/keywords/disable-bulk", { keywords });
+      location.reload();
+    } catch (e) {
+      alert(`일괄 비활성화 실패: ${e && e.message ? e.message : ""}`);
+    }
+  });
+
+  onClick('button[data-action="floating-clear"]', () => {
+    getKeywordCheckboxes().forEach((cb) => {
+      cb.checked = false;
+    });
+    ['suggested', 'enabled', 'disabled'].forEach(scope => {
+      syncSelectAll(scope);
+    });
+  });
+
   document.addEventListener("change", (e) => {
     const el = e.target;
     if (!el) return;
@@ -106,6 +243,7 @@
       getKeywordCheckboxes(scope).forEach((cb) => {
         cb.checked = el.checked;
       });
+      updateSelectionCount(scope);
       return;
     }
     if (el.matches('input[data-role="keyword-select"]')) {
